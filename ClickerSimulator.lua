@@ -36,13 +36,14 @@ local Pets_Settings = {
     AutoShinyPets = false,
     AutoEquipBestPets = false,
     AutoBuyEgg = false,
+    GetBestEgg = false,
     EggDropdown,
     CurEggLocation = "Basic",
     AutoDeletePets = false,
     Threshold = 100,
 }
 
-Pets:AddSwitch("Auto shiny pets", function(Value)
+Pets:AddSwitch("Auto upgrade pet (shiny, golden, rainbow, ect)", function(Value)
     Pets_Settings.AutoShinyPets = Value
 end)
 Pets:AddSwitch("Auto equip best pets", function(Value)
@@ -64,11 +65,14 @@ local EggPetsFolder = Pets:AddFolder("Eggs")
 EggPetsFolder:AddSwitch("Auto buy selected egg", function(Value)
     Pets_Settings.AutoBuyEgg = Value
 end)
+EggPetsFolder:AddSwitch("Auto select best egg", function(Value)
+    Pets_Settings.GetBestEgg = Value
+end)
 EggDropdown = EggPetsFolder:AddDropdown("Egg location", function(Value)
     Pets_Settings.CurEggLocation = Value
 end)
 
-local TempEggFolder = workspace.Eggs:GetChildren()
+local TempEggFolder = EggModule.Eggs
 table.sort(TempEggFolder, function(a, b)
     return a.Name:lower() < b.Name:lower()
 end)
@@ -80,7 +84,7 @@ local DeletePetsFolder = Pets:AddFolder("Delete pets")
 
 --Making it into a function for easier use
 local function GenerateWarningString()
-    return "All pets below " .. tostring(Pets_Settings.Threshold) .. "multiplier will be deleted!"
+    return "All pets below " .. tostring(Pets_Settings.Threshold) .. " multiplier will be deleted!"
 end
 
 DeletePetsFolder:AddSwitch("Auto delete pets", function(Value)
@@ -95,7 +99,7 @@ Pets_Settings.WarningLabel = DeletePetsFolder:AddLabel(GenerateWarningString())
 --REBIRTH
 local Rebirth_Settings = {
     DoAutoRebirth = false,
-    RebirthPer = 1
+    RebirthPer = "Auto"
 }
 
 Rebirth:AddSwitch("Auto rebirth", function(Value)
@@ -108,7 +112,7 @@ Rebirth:AddTextBox("Rebirths per", function(Value)
         Rebirth_Settings.RebirthPer = "Auto"
     end
 end)
-Rebirth:AddTextBox("If you set 'Rebirths per' to 'Auto' the script will calculate the highest rebirth amount you can do!")
+Rebirth:AddLabel("If you set 'Rebirths per' to 'Auto' the script will calculate the highest rebirth amount you can do!")
 
 --ZONES
 local Zone_Settings = {
@@ -130,7 +134,7 @@ ZoneTab:AddButton("Teleport to best zone", function()
 
     Player.Character.HumanoidRootPart.CFrame = Zone.teleport.CFrame
 end)
-ZoneTab:AddButton("Teleport to spesific zone", function()
+ZoneTab:AddButton("Teleport to specific zone", function()
     local Zone = workspace.Zones:FindFirstChild(Zone_Settings.CurZoneLocation)
 
     Player.Character.HumanoidRootPart.CFrame = Zone.teleport.CFrame
@@ -194,6 +198,19 @@ local GameFunctions = {
             experienceNeededToLevelUp = v21, 
             fullMultiplier = v22
         }
+    end,
+
+    GetSortedZones = function()
+        local OwnedZones = Data.unlockedZones.Value:split(";") --Formatted like:   ;Sky;;Ice;
+        local SortedOwnedZones = {}
+
+        for Index, OwnedZone in next, OwnedZones do
+            if OwnedZone ~= "" then
+                table.insert(SortedOwnedZones, OwnedZone)
+            end
+        end
+
+        return SortedOwnedZones
     end
 }
 
@@ -227,7 +244,18 @@ while task.wait() do
         coroutine.wrap(function()
             if not Debounces.BuyEggDebounce then
                 Debounces.BuyEggDebounce = true
-                local EggInfo = EggModule.Eggs[Pets_Settings.CurEggLocation]
+                local EggName = Pets_Settings.CurEggLocation
+
+                if Pets_Settings.GetBestEgg then
+                    local SortedZones = GameFunctions.GetSortedZones()
+                    for Index, Egg in next, EggModule.Eggs do
+                        if Egg.Island == SortedZones[#SortedZones] then
+                            EggName = Egg.Name
+                        end
+                    end
+                end
+
+                local EggInfo = EggModule.Eggs[EggName]
 
                 if EggInfo.Cost <= tonumber(Data.clicksClient.Value) then
                     ReplicatedStorage.Events.Client.purchaseEgg2:InvokeServer(workspace.Eggs:FindFirstChild(EggInfo.Name), false, false)
@@ -246,11 +274,11 @@ while task.wait() do
 
             --If the pet's multiplier is lower than the threshold the user sets, delete it
             if Multiplier <= Pets_Settings.Threshold then
-                local PetInfo = Player.PlayerGui.framesUI.petsBackground.Background.background.Scroll.ScrollingFrame:FindFirstChild(Pet.folder.Name)
+                local PetsEquipped = Data.petsEquipped.Value:split(";") --formatted like:   ;35;;23;
 
-                if PetInfo and not PetInfo.Background.equipped.Visible then
+                if not table.find(PetsEquipped, Pet.folder.Name) then
                     table.insert(PetsToDelete, {
-                        ["Equipped"] = PetInfo.Background.equipped.Visible,
+                        ["Equipped"] = false,
                         ["selectedPetFolder"] = Pet.folder,
                         ["PetName"] = Pet.name
                     })
@@ -291,14 +319,7 @@ while task.wait() do
 
     --Zones
     if Zone_Settings.AutoBuyZone then
-        local OwnedZones = Data.unlockedZones.Value:split(";") --Formatted like:   ;Sky;;Ice;
-        local SortedOwnedZones = {}
-
-        for Index, OwnedZone in next, OwnedZones do
-            if OwnedZone ~= "" then
-                table.insert(SortedOwnedZones, OwnedZone)
-            end
-        end
+        local SortedOwnedZones = GameFunctions.GetSortedZones()
 
         coroutine.wrap(function()
             if PortalModule[#SortedOwnedZones + 2].cost <= tonumber(Data.clicksClient.Value) and not Debounces.BuyZone then
