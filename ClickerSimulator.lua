@@ -72,7 +72,7 @@ EggDropdown = EggPetsFolder:AddDropdown("Egg location", function(Value)
     Pets_Settings.CurEggLocation = Value
 end)
 
-local TempEggFolder = EggModule.Eggs
+local TempEggFolder = workspace.Eggs:GetChildren()
 table.sort(TempEggFolder, function(a, b)
     return a.Name:lower() < b.Name:lower()
 end)
@@ -151,7 +151,8 @@ table.foreach(TempZoneFolder, function(ZoneIndex)
     TeleportDropdown:Add(TempZoneFolder[ZoneIndex])
 end)
 
-
+--GAMEPASS
+GamepassTab:AddButton("")
 
 local Debounces = {
     BuyEggDebounce = false,
