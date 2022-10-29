@@ -1,11 +1,13 @@
 local ScriptsForPlaceId = {
+    ["3891149796"] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/BoogaBooga/MainGui.lua", --Booga booga
+    [""] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/ClickerSimulator/MainGui.lua" --Clicker Simulator
 }
 
 
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
-local Script = ScriptsForPlaceId[game.PlaceId]
+local Script = ScriptsForPlaceId[tostring(game.GameId)]
 
 if Script == nil and GameName:lower():find("project") then
     warn("Project pokemon game detected!, changing script to PP gui")
