@@ -15,21 +15,6 @@ if Script == nil and GameName:lower():find("project") then
 end
 
 local RanSuccessfully, Error = pcall(function()
-    --Introvers bypasse(s), for adonis. Full credit goes to Introvert#1337
-    if not game:IsLoaded() then
-        game.Loaded:Wait()
-    end
-
-    local oldNamecall
-    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-        if string.match(getinfo(3, "s").source, "ClientMover") and getnamecallmethod() == "GetService" then
-            return
-        end
-
-        return oldNamecall(self, ...)
-    end)
-    replaceclosure(game:GetService("Players").LocalPlayer.Kick, function() end)
-
     loadstring(game:HttpGet(Script))()
 end)
 
