@@ -32,7 +32,7 @@ local function GetInventory(Type, ItemType)
                 for Name, ActualItem in next, Item do
                     ActualItem.FromArea = Index
                     ActualItem.Name = Name
-                    ActualItem.Slot = Index--(#Items - Index) + 1
+                    ActualItem.Slot = Index
 
                     table.insert(Inventory, ActualItem)
                 end
@@ -49,36 +49,35 @@ local function GetInventory(Type, ItemType)
         for Index, ItemParent in next, EquippedItems do
             if typeof(ItemParent) == "table" then
 
-                if ItemType == "All" then
-                    for Index, ItemArea in next, ItemParent do
-                        for CurIndex, ActualItem in next, ItemArea do --This should be all of the items, apart for armor items
-                            if typeof(ActualItem) == "table" then
+                for Index, ItemArea in next, ItemParent do
+                    for CurIndex, ActualItem in next, ItemArea do --This should be all of the items, apart for armor items
+                        if typeof(ActualItem) == "table" then
 
-                                if ActualItemPreferedStat then --If not armor item, insert into inventory
-                                    ActualItem.FromArea = Index
-                                    ActualItem.Name = CurIndex
+                            if ActualItem[AutoEquipBest.PreferedStat] then --If not armor item, insert into inventory
+                                ActualItem.FromArea = Index
+                                ActualItem.Name = CurIndex
 
-                                    table.insert(Inventory, ActualItem)
-                                else
-                                    for Name, ActualItemForArmors in next, ActualItem do --If armor item, get the actual items
-                                        if typeof(ActualItemForArmors) == "table" then
-                                            ActualItemForArmors.Name = Name
-                                            ActualItemForArmors.FromArea = Index
+                                table.insert(Inventory, ActualItem)
+                            else
+                                for Name, ActualItemForArmors in next, ActualItem do --If armor item, get the actual items
+                                    if typeof(ActualItemForArmors) == "table" then
+                                        ActualItemForArmors.Name = Name
+                                        ActualItemForArmors.FromArea = Index
+                                        --table.foreach(ActualItemForArmors, warn)
 
-                                            table.insert(Inventory, ActualItemForArmors)
-                                        end
+                                        table.insert(Inventory, ActualItemForArmors)
                                     end
                                 end
-
                             end
-                        end 
-                    end
+
+                        end
+                    end 
                 end
 
             end
         end
     end
-    
+
     return Inventory
 end
 
@@ -94,11 +93,15 @@ end
 
 local function GetEquippedArmor()
     local Inventory = GetInventory("EquippedItems", "All")
-    local EquippedArmor = {}
+    local EquippedArmor = {
+        ["Legs"] = {[AutoEquipBest.PreferedStat] = 0, FromArea = "Legs"},
+        ["Helmet"] = {[AutoEquipBest.PreferedStat] = 0, FromArea = "Helmet"},
+        ["Armor"] = {[AutoEquipBest.PreferedStat] = 0, FromArea = "Armor"}
+    }
 
     for Index, Item in next, Inventory do
         if Item.FromArea == "Legs" or Item.FromArea == "Helmet" or Item.FromArea == "Armor" then
-            table.insert(EquippedArmor, Item)
+            EquippedArmor[Item.FromArea] = Item
         end
     end
 
@@ -125,12 +128,8 @@ local function GetBestWeapon(InvItems)
     return BetterWeaponItem
 end
 
-local function GetBestArmor(InvItems)
-    local EquippedArmor = GetEquippedArmor() or {
-        Legs = {[AutoEquipBest.PreferedStat] = 0},
-        Helmet = {[AutoEquipBest.PreferedStat] = 0},
-        Armor = {[AutoEquipBest.PreferedStat] = 0}
-    }
+local function GetBestArmor(InvItems, WhichArmor)
+    local EquippedArmor = GetEquippedArmor()
     local ArmorToEquip = {
         Legs,
         Helmet,
@@ -158,7 +157,7 @@ local function GetBestArmor(InvItems)
         end
     end
 
-    return ArmorToEquip
+    return ArmorToEquip[WhichArmor]
 end
 
 local function GetItemsToSell(InvItems)
@@ -180,11 +179,8 @@ CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
-    local InvItems = GetInventory("InvItems")
-
     --//Equip better stuff
-    local BetterWeaponItem = GetBestWeapon(InvItems)
-    local BetterArmor = GetBestArmor(InvItems)
+    local BetterWeaponItem = GetBestWeapon(GetInventory("InvItems"))
 
     --EQUIP BEST WEAPON
     if BetterWeaponItem then --If there is a better weapon, equip it
@@ -195,18 +191,21 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     end
 
     --EQUIP BEST ARMOR
-    if BetterArmor then
-        for Index, Item in next, BetterArmor do
+    for Index = 1, 3 do
+        local ArmorToGet = Index == 1 and "Legs" or Index == 2 and "Helmet" or Index == 3 and "Armor"
+        local BetterArmor = GetBestArmor(GetInventory("InvItems"), ArmorToGet)
+
+        if BetterArmor then
             ServerNetwork:InvokeServer("WeaponFunction", {
                 Function = "EquipSlot",
-                Slot = Item.Slot
+                Slot = BetterArmor.Slot
             })
-            task.wait(0.5)
         end
+        task.wait(1)
     end
 
     --//Autosell stuff
-    local ToSell = GetItemsToSell(InvItems)
+    local ToSell = GetItemsToSell(GetInventory("InvItems"))
 
     for Index, Item in next, ToSell do
         ServerNetwork:InvokeServer("ShopFunctions", {
