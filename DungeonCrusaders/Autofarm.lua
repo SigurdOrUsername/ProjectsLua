@@ -213,9 +213,10 @@ else
 end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
-    if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
-        TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
-    end
+    --if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
+    warn("Yessir")
+    TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
+    --end
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
