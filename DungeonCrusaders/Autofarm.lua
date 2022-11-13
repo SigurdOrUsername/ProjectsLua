@@ -63,7 +63,6 @@ local function GetInventory(Type, ItemType)
                                     if typeof(ActualItemForArmors) == "table" then
                                         ActualItemForArmors.Name = Name
                                         ActualItemForArmors.FromArea = Index
-                                        --table.foreach(ActualItemForArmors, warn)
 
                                         table.insert(Inventory, ActualItemForArmors)
                                     end
@@ -214,9 +213,9 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
         })
     end
 
-    ServerNetwork:InvokeServer("ShopFunctions", {
-        Function = "CompleteTransaction"
-    })
+    --ServerNetwork:InvokeServer("ShopFunctions", {
+    --    Function = "CompleteTransaction"
+    --})
 
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
@@ -258,7 +257,11 @@ else --Not in lobby
 
         if Player.PlayerGui.EndGUI.Enabled then
             warn("TELEPORTING")
-            ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
+            if DungeonInfo.RepeatDungeon then
+                ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonRequest:InvokeServer(TeleportPartyDungeon)
+            else
+                ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
+            end
             break
         end
 
