@@ -55,7 +55,7 @@ local function GetInventory(Type, ItemType)
                         for CurIndex, ActualItem in next, ItemArea do --This should be all of the items, apart for armor items
                             if typeof(ActualItem) == "table" then
 
-                                if ActualItem[AutoEquipBest.PreferedStat] then --If not armor item, insert into inventory
+                                if ActualItemPreferedStat then --If not armor item, insert into inventory
                                     ActualItem.FromArea = Index
                                     ActualItem.Name = CurIndex
 
@@ -93,6 +93,19 @@ local function GetEquippedWeapon()
     end
 end
 
+local function GetEquippedArmor()
+    local Inventory = GetInventory("EquippedItems", "All")
+    local EquippedArmor = {}
+
+    for Index, Item in next, Inventory do
+        if Item.FromArea == "Legs" or Item.FromArea == "Helmet" or Item.FromArea == "Armor" then
+            table.insert(EquippedArmor, Item)
+        end
+    end
+
+    return EquippedArmor
+end
+
 local function GetBestWeapon(InvItems)
     local Last = 0
     local BetterWeaponItem
@@ -102,13 +115,47 @@ local function GetBestWeapon(InvItems)
     }
 
     for Index, Item in next, InvItems do
-        if Item[AutoEquipBest.PreferedStat] and Item[AutoEquipBest.PreferedStat] > Last and Item[AutoEquipBest.PreferedStat] > EquippedWeapon[AutoEquipBest.PreferedStat] then
-            Last = Item[AutoEquipBest.PreferedStat]
+        local ItemPreferedStat = Item[AutoEquipBest.PreferedStat]
+
+        if ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon[AutoEquipBest.PreferedStat] then
+            Last = ItemPreferedStat
             BetterWeaponItem = Item
         end
     end
 
     return BetterWeaponItem
+end
+
+local function GetBestArmor(InvItems)
+    local EquippedArmor = GetEquippedArmor()
+    local ArmorToEquip = {
+        Legs,
+        Helmet,
+        Armor,
+    }
+    local Last = {
+        Legs = 0,
+        Helmet = 0,
+        Armor = 0
+    }
+
+    for Index, Item in next, InvItems do
+        if Item.Name:match("Legs") or Item.Name:match("Helmet") or Item.Name:match("Armor") then
+            local ArmorType = Item.Name:match("Legs") and "Legs" or Item.Name:match("Helmet") and "Helmet" or Item.Name:match("Armor") and "Armor"
+
+            for Index, ArmorEquipped in next, EquippedArmor do
+                local ArmorPreferedStat = Item[AutoEquipBest.PreferedStat]
+
+                if ArmorType == ArmorEquipped.FromArea and ArmorPreferedStat > Last[ArmorType] and ArmorPreferedStat > ArmorEquipped[AutoEquipBest.PreferedStat] then
+                    Last[ArmorType] = ArmorPreferedStat
+                    ArmorToEquip[ArmorType] = Item
+                end
+            end
+
+        end
+    end
+
+    return ArmorToEquip
 end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
@@ -118,21 +165,33 @@ CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
-
     local InvItems = GetInventory("InvItems")
 
-    --EQUIP BEST WEAPON
     local BetterWeaponItem = GetBestWeapon(InvItems)
+    local BetterArmor = GetBestArmor(InvItems)
 
+    --EQUIP BEST WEAPON
     if BetterWeaponItem then --If there is a better weapon, equip it
         ServerNetwork:InvokeServer("WeaponFunction", {
             Function = "EquipSlot",
             Slot = BetterWeaponItem.Slot
         })
+        task.wait(0.5)
     end
 
-    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
-    ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
+    --EQUIP BEST ARMOR
+    if BetterArmor then
+        for Index, Item in next, BetterArmor do
+            ServerNetwork:InvokeServer("WeaponFunction", {
+                Function = "EquipSlot",
+                Slot = Item.Slot
+            })
+            task.wait(0.5)
+        end
+    end
+
+    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
+    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
 
@@ -147,7 +206,6 @@ else --Not in lobby
         end
     end)
 
-    local SpellsDebounce = false
     while task.wait() do
         local DefeatedAllMobs = true
         
@@ -170,6 +228,7 @@ else --Not in lobby
         end
 
         if Player.PlayerGui.EndGUI.Enabled then
+            warn("TELEPORTING")
             ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
             break
         end
