@@ -1,4 +1,3 @@
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -200,6 +199,19 @@ local function GetItemsToSell(InvItems)
     return ItemsToSell
 end
 
+--Store how many runs you've done
+local StorageFile
+local HasStorageFile = pcall(function()
+    readfile("StorageFile.txt")
+end)
+
+if not HasStorageFile then
+    writefile("StorageFile.txt", "0")
+    StorageFile = readfile("StorageFile.txt")
+else
+    StorageFile = readfile("StorageFile.txt")
+end
+
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
     if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
         TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
@@ -268,11 +280,6 @@ else --Not in lobby
         end
     end)
 
-    game.Players.LocalPlayer.PlayerGui.GUI.DescendantAdded:Connect(function(Child)
-        --print(Child)
-        --print(Child:GetFullName())
-    end)
-
     while task.wait() do
         local DefeatedAllMobs = true
         
@@ -314,12 +321,14 @@ else --Not in lobby
                 end
 
                 SendWebook({
-                    Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon .. " [" .. DungeonInfo.PartyInfo.Difficulty .. "]",
-                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``",
+                    Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon .. " [" .. DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
+                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``" .. "\nCurrent run times: ``" .. StorageFile .. "``",
                     Feilds = AllFeilds,
                     TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text 
                 })
             end
+
+            writefile("StorageFile.txt", tostring(tonumber(StorageFile) + 1))
 
             if ExtraDungeonInfo.RepeatDungeon then
                 ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonRequest:InvokeServer(TeleportPartyDungeon)
