@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -161,6 +162,18 @@ local function GetBestArmor(InvItems)
     return ArmorToEquip
 end
 
+local function GetItemsToSell(InvItems)
+    local ItemsToSell = {}
+
+    for Index, Item in next, InvItems do
+        if Item.Tier and not table.find(Autosell.RaritiesToKeep, Item.Tier) and not table.find(Autosell.ItemsToKeep, Item.Name) then
+            table.insert(ItemsToSell, Item)
+        end
+    end
+
+    return ItemsToSell
+end
+
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
     if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
         TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
@@ -170,6 +183,7 @@ end)
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     local InvItems = GetInventory("InvItems")
 
+    --//Equip better stuff
     local BetterWeaponItem = GetBestWeapon(InvItems)
     local BetterArmor = GetBestArmor(InvItems)
 
@@ -179,7 +193,6 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
             Function = "EquipSlot",
             Slot = BetterWeaponItem.Slot
         })
-        task.wait(0.5)
     end
 
     --EQUIP BEST ARMOR
@@ -192,6 +205,22 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
             task.wait(0.5)
         end
     end
+
+    --//Autosell stuff
+    local ToSell = GetItemsToSell(InvItems)
+
+    for Index, Item in next, ToSell do
+        coroutine.wrap(function()
+            ServerNetwork:InvokeServer("ShopFunctions", {
+                Function = "InsertItem",
+                Slot = Item.Slot
+            })
+        end)
+    end
+
+    ServerNetwork:InvokeServer("ShopFunctions", {
+        Function = "CompleteTransaction"
+    })
 
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
