@@ -1,3 +1,16 @@
+DungeonInfo = {
+    SpellSpamCooldown = 0.1,
+    ["PartyInfo"] = {
+		["Difficulty"] = "Chaos", --//Difficult level [Novice, Advanced, Chaos] / Auto
+		["Hardcore"] = false, --//Need to be lvl 11
+		["Extreme"] = true, --//Need to be lvl 12
+		["Private"] = true,
+		["Dungeon"] = "Jungle" --//Dungeon name / Auto
+	}
+}
+
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/DungeonCrusaders/Autofarm.lua"))()
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -46,8 +59,11 @@ local function GetItemStats(Item, Type)
     else
         local TempItemsTable = {}
 
-        for Index, tempItem in next, Item do
+        for Index, TempItem in next, Item do
+            table.insert(TempItemsTable, TempItem)
         end
+
+        return TempItemsTable
     end
 end
 
@@ -59,15 +75,14 @@ end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
 
-    --[[
     local InvItems = GetInventory("InvItems")
 
     for Index, Item in next, InvItems do
+        print(GetItemStats(Item, "InvItems"))
     end
-    ]]
 
-    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
-    --game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
+    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
+    game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
 
