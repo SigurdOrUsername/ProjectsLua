@@ -48,7 +48,7 @@ local function GetInventory(Type, ItemType)
     })
     local EquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
     	Function = "RetrieveEquippedLoadout", 
-    	userId = game.Players.LocalPlayer.userId
+    	userId = Player.userId
     })
     
     --//Items are sorted like this 
@@ -251,6 +251,7 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     end
 
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
+    task.wait(ExtraDungeonInfo.WaitTimeBeforeStartingDungeon)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
@@ -297,6 +298,10 @@ else --Not in lobby
         if Player.PlayerGui.EndGUI.Enabled then
             if Webhook.SendWebooks then
                 local AllFeilds = {}
+                local RawEquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
+                    Function = "RetrieveEquippedLoadout",
+                    userId = Player.userId
+                })
 
                 for Index, GotItem in next, GetInventory("InvItems") do
                     if Index > #OldInventory then
@@ -309,10 +314,10 @@ else --Not in lobby
                 end
 
                 SendWebook({
-                    Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon,
-                    Description = "Player: " .. Player.Name,
+                    Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon .. " [" .. DungeonInfo.PartyInfo.Difficulty .. "]",
+                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``",
                     Feilds = AllFeilds,
-                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text
+                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text 
                 })
             end
 
