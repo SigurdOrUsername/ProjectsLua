@@ -1,16 +1,3 @@
-DungeonInfo = {
-    SpellSpamCooldown = 0.1,
-    ["PartyInfo"] = {
-		["Difficulty"] = "Chaos", --//Difficult level [Novice, Advanced, Chaos] / Auto
-		["Hardcore"] = false, --//Need to be lvl 11
-		["Extreme"] = true, --//Need to be lvl 12
-		["Private"] = true,
-		["Dungeon"] = "Jungle" --//Dungeon name / Auto
-	}
-}
-
---loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/DungeonCrusaders/Autofarm.lua"))()
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
