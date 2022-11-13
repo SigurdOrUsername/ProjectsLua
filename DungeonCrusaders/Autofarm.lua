@@ -54,7 +54,7 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     for Index, Item in next, InvItems do
     end
     ]]
-
+    warn(DungeonInfo)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
