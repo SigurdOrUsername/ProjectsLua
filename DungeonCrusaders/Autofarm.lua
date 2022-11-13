@@ -1,4 +1,3 @@
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -127,7 +126,11 @@ local function GetBestWeapon(InvItems)
 end
 
 local function GetBestArmor(InvItems)
-    local EquippedArmor = GetEquippedArmor()
+    local EquippedArmor = GetEquippedArmor() or {
+        Legs = {[AutoEquipBest.PreferedStat] = 0},
+        Helmet = {[AutoEquipBest.PreferedStat] = 0},
+        Armor = {[AutoEquipBest.PreferedStat] = 0}
+    }
     local ArmorToEquip = {
         Legs,
         Helmet,
@@ -212,6 +215,7 @@ else --Not in lobby
         if workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)) then
             for Index, Mob in next, workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)):GetChildren() do
                 if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") then
+
                     while Mob:FindFirstChild("HumanoidRootPart") do
                         Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 1, 0), Mob.HumanoidRootPart.Position)
                         coroutine.wrap(function()
