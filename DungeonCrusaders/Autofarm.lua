@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -11,7 +12,7 @@ repeat task.wait() until Player:FindFirstChild("leaderstats")
 local CoreGui = game:GetService("CoreGui")
 local TeleportService = game:GetService("TeleportService")
 
-local function GetInventory(Type)
+local function GetInventory(Type, ItemType)
     local Inventory = {}
     
     local Items = ServerNetwork:InvokeServer("DataFunctions", {
@@ -22,17 +23,59 @@ local function GetInventory(Type)
     	userId = game.Players.LocalPlayer.userId
     })
     
+    --//Items are sorted like this 
+    --AllItems = {
+        --["Item"] = ActualItem
+    --}
     if Type == "InvItems" then
         for Index, Item in next, Items do
             if typeof(Item) == "table" then
-                table.insert(Inventory, Item)
+                for Name, ActualItem in next, Item do
+                    ActualItem.FromArea = Index
+                    ActualItem.Name = Name
+                    ActualItem.Slot = Index--(#Items - Index) + 1
+
+                    table.insert(Inventory, ActualItem)
+                end
             end
         end
     end
+
+    --//Items are sorted like this 
+    --AllItems = {
+        --["Legs"] = {AllItems}
+        --["Armor"] = {AllItems}
+    --}
     if Type == "EquippedItems" then
-        for Index, Item in next, EquippedItems do
-            if typeof(Item) == "table" then
-                table.insert(Inventory, Item)
+        for Index, ItemParent in next, EquippedItems do
+            if typeof(ItemParent) == "table" then
+
+                if ItemType == "All" then
+                    for Index, ItemArea in next, ItemParent do
+                        for CurIndex, ActualItem in next, ItemArea do --This should be all of the items, apart for armor items
+                            if typeof(ActualItem) == "table" then
+
+                                if ActualItem[AutoEquipBest.PreferedStat] then --If not armor item, insert into inventory
+                                    ActualItem.FromArea = Index
+                                    ActualItem.Name = CurIndex
+
+                                    table.insert(Inventory, ActualItem)
+                                else
+                                    for Name, ActualItemForArmors in next, ActualItem do --If armor item, get the actual items
+                                        if typeof(ActualItemForArmors) == "table" then
+                                            ActualItemForArmors.Name = Name
+                                            ActualItemForArmors.FromArea = Index
+
+                                            table.insert(Inventory, ActualItemForArmors)
+                                        end
+                                    end
+                                end
+
+                            end
+                        end 
+                    end
+                end
+
             end
         end
     end
@@ -40,18 +83,32 @@ local function GetInventory(Type)
     return Inventory
 end
 
-local function GetItemStats(Item, Type)
-    if Type == "InvItems" then
-        return Item
-    else
-        local TempItemsTable = {}
+local function GetEquippedWeapon()
+    local Inventory = GetInventory("EquippedItems", "All")
 
-        for Index, TempItem in next, Item do
-            table.insert(TempItemsTable, TempItem)
+    for Index, Item in next, Inventory do
+        if Item.FromArea == 1 and Item.MaxUpgrades then
+            return Item
         end
-
-        return TempItemsTable
     end
+end
+
+local function GetBestWeapon(InvItems)
+    local Last = 0
+    local BetterWeaponItem
+
+    local EquippedWeapon = GetEquippedWeapon() or {
+        [AutoEquipBest.PreferedStat] = 0
+    }
+
+    for Index, Item in next, InvItems do
+        if Item[AutoEquipBest.PreferedStat] and Item[AutoEquipBest.PreferedStat] > Last and Item[AutoEquipBest.PreferedStat] > EquippedWeapon[AutoEquipBest.PreferedStat] then
+            Last = Item[AutoEquipBest.PreferedStat]
+            BetterWeaponItem = Item
+        end
+    end
+
+    return BetterWeaponItem
 end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
@@ -64,12 +121,18 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
 
     local InvItems = GetInventory("InvItems")
 
-    for Index, Item in next, InvItems do
-        print(GetItemStats(Item, "InvItems"))
+    --EQUIP BEST WEAPON
+    local BetterWeaponItem = GetBestWeapon(InvItems)
+
+    if BetterWeaponItem then --If there is a better weapon, equip it
+        ServerNetwork:InvokeServer("WeaponFunction", {
+            Function = "EquipSlot",
+            Slot = BetterWeaponItem.Slot
+        })
     end
 
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
-    game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
+    ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
 
