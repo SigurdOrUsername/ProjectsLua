@@ -40,6 +40,17 @@ local function GetInventory(Type)
     return Inventory
 end
 
+local function GetItemStats(Item, Type)
+    if Type == "InvItems" then
+        return Item
+    else
+        local TempItemsTable = {}
+
+        for Index, tempItem in next, Item do
+        end
+    end
+end
+
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
     if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
         TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
@@ -55,8 +66,8 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     end
     ]]
 
-    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
-    game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
+    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
+    --game:GetService("ReplicatedStorage").Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
 
@@ -81,8 +92,13 @@ else --Not in lobby
                     while Mob:FindFirstChild("HumanoidRootPart") do
                         Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 1, 0), Mob.HumanoidRootPart.Position)
                         coroutine.wrap(function()
-                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
+                            if not SpellsDebounce then
+                                SpellsDebounce = true
+                                ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
+                                ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
+                                task.wait(DungeonInfo.SpellSpamCooldown)
+                                SpellsDebounce = false
+                            end
                         end)()
 
                         task.wait()
@@ -94,7 +110,6 @@ else --Not in lobby
         end
 
         if Player.PlayerGui.EndGUI.Enabled then
-            task.wait()
             ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
             break
         end
