@@ -190,8 +190,8 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
         end
     end
 
-    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
-    --ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
+    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
+    ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
 
