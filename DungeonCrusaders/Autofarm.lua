@@ -1,4 +1,3 @@
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -210,12 +209,10 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     local ToSell = GetItemsToSell(InvItems)
 
     for Index, Item in next, ToSell do
-        coroutine.wrap(function()
-            ServerNetwork:InvokeServer("ShopFunctions", {
-                Function = "InsertItem",
-                Slot = Item.Slot
-            })
-        end)
+        ServerNetwork:InvokeServer("ShopFunctions", {
+            Function = "InsertItem",
+            Slot = Item.Slot
+        })
     end
 
     ServerNetwork:InvokeServer("ShopFunctions", {
