@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -10,6 +11,34 @@ repeat task.wait() until Player:FindFirstChild("leaderstats")
 
 local CoreGui = game:GetService("CoreGui")
 local TeleportService = game:GetService("TeleportService")
+
+local HttpService = game:GetService("HttpService")
+local Request = http_request or request or HttpPost or syn.request
+
+local function SendWebook(InfoTable)
+    local Data = {
+        embeds = {
+            {
+                title = InfoTable.Title,
+                description = InfoTable.Description,
+                fields = InfoTable.Feilds,
+                color = tonumber(0x00ff00),
+                footer = {
+                    text = "Completed with a time of: " .. InfoTable.TimeCompleted
+                }
+            }
+        }
+    }
+
+    Request({
+        Url = Webhook.Url,
+        Body = HttpService:JSONEncode(Data),
+        Method = "POST",
+        Headers = {
+            ["content-type"] = "application/json"
+        }
+    })
+end
 
 local function GetInventory(Type, ItemType)
     local Inventory = {}
@@ -178,44 +207,48 @@ CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
-    --//Equip better stuff
-    local BetterWeaponItem = GetBestWeapon(GetInventory("InvItems"))
+    if AutoEquipBest.DoAutoEquipBest then
+        --//Equip better stuff
+        local BetterWeaponItem = GetBestWeapon(GetInventory("InvItems"))
 
-    --EQUIP BEST WEAPON
-    if BetterWeaponItem then --If there is a better weapon, equip it
-        ServerNetwork:InvokeServer("WeaponFunction", {
-            Function = "EquipSlot",
-            Slot = BetterWeaponItem.Slot
-        })
-    end
-
-    --EQUIP BEST ARMOR
-    for Index = 1, 3 do
-        local ArmorToGet = Index == 1 and "Legs" or Index == 2 and "Helmet" or Index == 3 and "Armor"
-        local BetterArmor = GetBestArmor(GetInventory("InvItems"), ArmorToGet)
-
-        if BetterArmor then
+        --EQUIP BEST WEAPON
+        if BetterWeaponItem then --If there is a better weapon, equip it
             ServerNetwork:InvokeServer("WeaponFunction", {
                 Function = "EquipSlot",
-                Slot = BetterArmor.Slot
+                Slot = BetterWeaponItem.Slot
             })
         end
-        task.wait(1)
+
+        --EQUIP BEST ARMOR
+        for Index = 1, 3 do
+            local ArmorToGet = Index == 1 and "Legs" or Index == 2 and "Helmet" or Index == 3 and "Armor"
+            local BetterArmor = GetBestArmor(GetInventory("InvItems"), ArmorToGet)
+
+            if BetterArmor then
+                ServerNetwork:InvokeServer("WeaponFunction", {
+                    Function = "EquipSlot",
+                    Slot = BetterArmor.Slot
+                })
+            end
+            task.wait(1)
+        end
     end
 
-    --//Autosell stuff
-    local ToSell = GetItemsToSell(GetInventory("InvItems"))
+    if Autosell.DoAutoSell then
+        --//Autosell stuff
+        local ToSell = GetItemsToSell(GetInventory("InvItems"))
 
-    for Index, Item in next, ToSell do
+        for Index, Item in next, ToSell do
+            ServerNetwork:InvokeServer("ShopFunctions", {
+                Function = "InsertItem",
+                Slot = Item.Slot
+            })
+        end
+
         ServerNetwork:InvokeServer("ShopFunctions", {
-            Function = "InsertItem",
-            Slot = Item.Slot
+            Function = "CompleteTransaction"
         })
     end
-
-    --ServerNetwork:InvokeServer("ShopFunctions", {
-    --    Function = "CompleteTransaction"
-    --})
 
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
@@ -226,11 +259,17 @@ else --Not in lobby
     repeat task.wait() until Player.PlayerGui.GUI.GameInfo.MobCount.Text ~= "Start Pending..."
 
     local CurStage = 1
+    local OldInventory = GetInventory("InvItems") --//For checking when items get added
 
     RunService.Stepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
             Player.Character.HumanoidRootPart.Velocity = Vector3.new(0, -1, 0)
         end
+    end)
+
+    game.Players.LocalPlayer.PlayerGui.GUI.DescendantAdded:Connect(function(Child)
+        --print(Child)
+        --print(Child:GetFullName())
     end)
 
     while task.wait() do
@@ -256,8 +295,28 @@ else --Not in lobby
         end
 
         if Player.PlayerGui.EndGUI.Enabled then
-            warn("TELEPORTING")
-            if DungeonInfo.RepeatDungeon then
+            if Webhook.SendWebooks then
+                local AllFeilds = {}
+
+                for Index, GotItem in next, GetInventory("InvItems") do
+                    if Index > #OldInventory then
+                        table.insert(AllFeilds, {
+                            name = GotItem.Name,
+                            value = "```Tier: " .. tostring(GotItem.Tier) .. "\nMagic Damage: " .. tostring(GotItem.MagicDamage) .. "\nPhysical Damage: " .. tostring(GotItem.PhysicalDamage) .. "\nHealth: " .. tostring(GotItem.Health) .. "\nLvl Requirement: " .. tostring(GotItem.Requirement) .. "\nMax Upgrades: " .. tostring(GotItem.MaxUpgrades) .. "```",
+                            inline = true
+                        })
+                    end
+                end
+
+                SendWebook({
+                    Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon,
+                    Description = "Player: " .. Player.Name,
+                    Feilds = AllFeilds,
+                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text
+                })
+            end
+
+            if ExtraDungeonInfo.RepeatDungeon then
                 ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonRequest:InvokeServer(TeleportPartyDungeon)
             else
                 ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
