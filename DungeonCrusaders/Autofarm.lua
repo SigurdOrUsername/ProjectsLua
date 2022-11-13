@@ -157,13 +157,8 @@ else --Not in lobby
                     while Mob:FindFirstChild("HumanoidRootPart") do
                         Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 1, 0), Mob.HumanoidRootPart.Position)
                         coroutine.wrap(function()
-                            if not SpellsDebounce then
-                                SpellsDebounce = true
-                                ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-                                ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-                                task.wait(DungeonInfo.SpellSpamCooldown)
-                                SpellsDebounce = false
-                            end
+                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
+                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
                         end)()
 
                         task.wait()
