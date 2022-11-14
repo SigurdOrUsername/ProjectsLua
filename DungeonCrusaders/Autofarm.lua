@@ -214,9 +214,9 @@ else
 end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
-    if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
-        TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
-    end
+    --if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
+    TeleportService:TeleportToPlaceInstance("6998582502") --If the user gets kicked, send them back to the lobby
+    --end
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
@@ -325,7 +325,7 @@ else --Not in lobby
                     Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon .. " [" .. DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
                     Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``" .. "\nCurrent run times: ``" .. StorageFile .. "``",
                     Feilds = AllFeilds,
-                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text 
+                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text .. ", \nUser local time: " .. os.date()
                 })
             end
 
