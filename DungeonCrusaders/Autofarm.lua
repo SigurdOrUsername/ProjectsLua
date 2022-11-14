@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -213,10 +214,9 @@ else
 end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
-    --if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
-    warn("Yessir")
-    TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
-    --end
+    if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
+        TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
+    end
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
@@ -330,6 +330,7 @@ else --Not in lobby
             end
 
             writefile("StorageFile.txt", tostring(tonumber(StorageFile) + 1))
+            task.wait(ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon)
 
             if ExtraDungeonInfo.RepeatDungeon then
                 ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonRequest:InvokeServer(TeleportPartyDungeon)
