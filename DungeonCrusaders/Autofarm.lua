@@ -1,4 +1,3 @@
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -215,7 +214,7 @@ end
 
 CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
     --if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
-    TeleportService:TeleportToPlaceInstance("6998582502") --If the user gets kicked, send them back to the lobby
+    TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
     --end
 end)
 
