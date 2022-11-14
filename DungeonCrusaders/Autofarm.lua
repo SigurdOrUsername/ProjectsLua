@@ -1,3 +1,4 @@
+
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -16,6 +17,8 @@ local Request = http_request or request or HttpPost or syn.request
 
 local function SendWebook(InfoTable)
     local Data = {
+        content = InfoTable.Content,
+
         embeds = {
             {
                 title = InfoTable.Title,
@@ -273,6 +276,7 @@ else --Not in lobby
 
     local CurStage = 1
     local OldInventory = GetInventory("InvItems") --//For checking when items get added
+    local TimeAtStartOfDungeon = os.time()
 
     RunService.Stepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
@@ -282,13 +286,14 @@ else --Not in lobby
 
     while task.wait() do
         local DefeatedAllMobs = true
-        
+
+        --Actually murdering the mods
         if workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)) then
             for Index, Mob in next, workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)):GetChildren() do
                 if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") then
 
                     while Mob:FindFirstChild("HumanoidRootPart") do
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 1, 0), Mob.HumanoidRootPart.Position)
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 2, 0), Mob.HumanoidRootPart.Position)
                         coroutine.wrap(function()
                             ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
                             ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
@@ -302,9 +307,12 @@ else --Not in lobby
             end
         end
 
+        --Webhook stuff
         if Player.PlayerGui.EndGUI.Enabled then
             if Webhook.SendWebooks then
                 local AllFeilds = {}
+                local PingContent = ""
+
                 local RawEquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
                     Function = "RetrieveEquippedLoadout",
                     userId = Player.userId
@@ -312,6 +320,11 @@ else --Not in lobby
 
                 for Index, GotItem in next, GetInventory("InvItems") do
                     if Index > #OldInventory then
+
+                        if table.find(Webhook.PingForRarity, GotItem.Tier) then
+                            PingContent = "<@" .. Webhook.UserId .. ">"
+                        end
+
                         table.insert(AllFeilds, {
                             name = GotItem.Name,
                             value = "```Tier: " .. tostring(GotItem.Tier) .. "\nMagic Damage: " .. tostring(GotItem.MagicDamage) .. "\nPhysical Damage: " .. tostring(GotItem.PhysicalDamage) .. "\nHealth: " .. tostring(GotItem.Health) .. "\nLvl Requirement: " .. tostring(GotItem.Requirement) .. "\nMax Upgrades: " .. tostring(GotItem.MaxUpgrades) .. "```",
@@ -322,9 +335,10 @@ else --Not in lobby
 
                 SendWebook({
                     Title = "Completed dungeon " .. DungeonInfo.PartyInfo.Dungeon .. " [" .. DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
-                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``" .. "\nCurrent run times: ``" .. StorageFile .. "``",
+                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``" .. "\nAmount of runs finished: ``" .. StorageFile .. "``",
+                    Content = PingContent,
                     Feilds = AllFeilds,
-                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text .. ", \nUser local time: " .. os.date()
+                    TimeCompleted = Player.PlayerGui.GUI.Top.Timer.Text .. " (Took " .. os.time() - TimeAtStartOfDungeon .. " sec), \nUser local time: " .. os.date()
                 })
             end
 
