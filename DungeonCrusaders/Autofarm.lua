@@ -203,7 +203,7 @@ local function GetItemsToSell(InvItems)
 end
 
 local PrioritizeKillingMobsFirst = {
-    "Spearman"
+    --"Spearman"
 }
 
 local function GrabMob(CurStage)
@@ -322,19 +322,19 @@ else --Not in lobby
     --Init doding stuff
 
     local Root
-    local ConstantSpace = 4
+    local ConstantSpace = 7
 
     --Makes a grid around "root", so we can use it to find safe positions around the mobs
     local Parts = {}
-    for X = -4.5, 4.5 do
-        for Z = -4.5, 4.5 do
+    for X = -6, 6 do
+        for Z = -6, 6 do
             local Part = Instance.new("Part", workspace)
 
             Part.Name = "AutofarmPart"
             Part.Transparency = 0.5
             Part.Anchored = true
             Part.CanCollide = false
-            Part.Size = Vector3.new(Player.Character.HumanoidRootPart.Size.X, 15, Player.Character.HumanoidRootPart.Size.Z)
+            Part.Size = Vector3.new(Player.Character.HumanoidRootPart.Size.X, 200, Player.Character.HumanoidRootPart.Size.X)
 
             coroutine.wrap(function()
                 while task.wait() do
