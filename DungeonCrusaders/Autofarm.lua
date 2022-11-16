@@ -1,4 +1,3 @@
-
 repeat task.wait() until game:IsLoaded()
 
 local Player = game:GetService("Players").LocalPlayer
@@ -148,8 +147,9 @@ local function GetBestWeapon(InvItems)
 
     for Index, Item in next, InvItems do
         local ItemPreferedStat = Item[AutoEquipBest.PreferedStat]
+        local IsValidItem = Item.MaxUpgrades
 
-        if ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon[AutoEquipBest.PreferedStat] then
+        if IsValidItem and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon[AutoEquipBest.PreferedStat] then
             Last = ItemPreferedStat
             BetterWeaponItem = Item
         end
@@ -202,6 +202,43 @@ local function GetItemsToSell(InvItems)
     return ItemsToSell
 end
 
+local PrioritizeKillingMobsFirst = {
+    "Spearman"
+}
+
+local function GrabMob(CurStage)
+    local Last = math.huge
+    local ReturnMob
+
+    for Index, Mob in next, workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)):GetChildren() do
+        if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") then
+            if table.find(PrioritizeKillingMobsFirst, Mob.Name) then
+                return Mob
+            end
+
+            if (Mob.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude < Last then
+                ReturnMob = Mob
+                Last = (Mob.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+            end
+        end
+    end
+
+    return ReturnMob
+end
+
+local function GetTouchingParts(Part)
+    return workspace:GetPartsInPart(Part, OverlapParams.new({
+        MaxParts = math.huge, 
+        RespectCanCollide = false,
+        FilterType = Enum.RaycastFilterType.Blacklist,
+        FilterDescendantsInstances = {
+            workspace.Mobs,
+            workspace.Filter.Map,
+            Player.Character,
+        }
+    }))
+end
+
 --Store how many runs you've done
 local StorageFile
 local HasStorageFile = pcall(function()
@@ -215,10 +252,9 @@ else
     StorageFile = readfile("StorageFile.txt")
 end
 
-CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(Child)
-    --if Child.Name == "ErrorPrompt" and Child:FindFirstChild("MessageArea") and Child.MessageArea:FindFirstChild("ErrorFrame") then
+CoreGui.RobloxPromptGui.promptOverlay.DescendantAdded:Connect(function(Child)
     TeleportService:Teleport("6998582502") --If the user gets kicked, send them back to the lobby
-    --end
+    task.wait(9e9)
 end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
@@ -265,18 +301,17 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
         })
     end
 
-    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     task.wait(ExtraDungeonInfo.WaitTimeBeforeStartingDungeon)
+    ReplicatedStorage.Core.CoreEvents.PartyEvents.Request:InvokeServer("Create", DungeonInfo)
     ReplicatedStorage.Core.CoreEvents.PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     repeat task.wait() until game:IsLoaded()
-
-    Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame
-    repeat task.wait() until Player.PlayerGui.GUI.GameInfo.MobCount.Text ~= "Start Pending..."
+    repeat Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame task.wait() until Player.PlayerGui.GUI.GameInfo.MobCount.Text ~= "Start Pending..."
 
     local CurStage = 1
     local OldInventory = GetInventory("InvItems") --//For checking when items get added
     local TimeAtStartOfDungeon = os.time()
+    local InputHandler = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler) --For firing spells
 
     RunService.Stepped:Connect(function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
@@ -284,28 +319,103 @@ else --Not in lobby
         end
     end)
 
-    while task.wait() do
-        local DefeatedAllMobs = true
+    --Init doding stuff
 
-        --Actually murdering the mods
-        if workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)) then
-            for Index, Mob in next, workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)):GetChildren() do
-                if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") then
+    local Root
+    local ConstantSpace = 4
 
-                    while Mob:FindFirstChild("HumanoidRootPart") do
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(0, 2, 0), Mob.HumanoidRootPart.Position)
-                        coroutine.wrap(function()
-                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-                            ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-                        end)()
+    --Makes a grid around "root", so we can use it to find safe positions around the mobs
+    local Parts = {}
+    for X = -4.5, 4.5 do
+        for Z = -4.5, 4.5 do
+            local Part = Instance.new("Part", workspace)
 
-                        task.wait()
+            Part.Name = "AutofarmPart"
+            Part.Transparency = 0.5
+            Part.Anchored = true
+            Part.CanCollide = false
+            Part.Size = Vector3.new(Player.Character.HumanoidRootPart.Size.X, 15, Player.Character.HumanoidRootPart.Size.Z)
+
+            coroutine.wrap(function()
+                while task.wait() do
+                    if Part then
+                        if Root then
+                            Part.CFrame = CFrame.new(Root.Position + Vector3.new(X * ConstantSpace, 0, Z * ConstantSpace))
+                        end
+                    else
+                        break
                     end
+                end
+            end)()
 
-                    DefeatedAllMobs = false
+            table.insert(Parts, Part)
+        end
+    end
+
+    local function CheckIfSafe(Part)
+        local IsSafe = true
+
+        for Index, TouchingPart in next, GetTouchingParts(Part) do
+            if TouchingPart.Name ~= "AutofarmPart" and TouchingPart.Transparency ~= 1 and (workspace:FindFirstChild(TouchingPart.Name) or TouchingPart:IsDescendantOf(workspace.Filter.Effects)) then
+                IsSafe = false
+            end
+        end
+
+        return IsSafe
+    end
+
+    local function GetSafePosition(ClosestOrFarthest)
+        local OldMagnitude = ClosestOrFarthest == "Closest" and math.huge or 0
+        local ReturnPart
+
+        for Index, Part in next, Parts do
+            if (ClosestOrFarthest == "Closest" and (Part.Position - Root.Position).Magnitude < OldMagnitude) or (ClosestOrFarthest ~= "Closest" and (Part.Position - Root.Position).Magnitude > OldMagnitude) then
+                local IsPartSafe = CheckIfSafe(Part)
+
+                if IsPartSafe then
+                    ReturnPart = Part
+                    OldMagnitude = (Part.Position - Root.Position).Magnitude
                 end
             end
         end
+
+        return ReturnPart
+    end
+
+    while task.wait() do
+        local DefeatedAllMobs = true
+
+        --Actually murdering the mods + doding
+        if workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)) then
+            local Mob = GrabMob(CurStage)
+
+            if Mob then
+                Root = Mob.HumanoidRootPart
+                while Mob:FindFirstChild("HumanoidRootPart") do
+                    local SafePos = GetSafePosition("Closest")
+
+                    if SafePos and Player.Character:FindFirstChild("HumanoidRootPart") then
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(SafePos.Position, Root.Position + Vector3.new(0, 1, 0))
+                        ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicNetwork:FireServer("Swing", Root.Position)
+                    end
+                    if not Player.PlayerGui.GUI.HUD.Q:FindFirstChild("cdTemplate") or not Player.PlayerGui.GUI.HUD.E:FindFirstChild("cdTemplate") then
+                        InputHandler.ActivateE()
+                        InputHandler.ActivateQ()
+                    end
+
+                    task.wait()
+                end
+
+                DefeatedAllMobs = false
+            end
+        end
+
+        if DefeatedAllMobs then
+            CurStage = CurStage + 1
+        end
+
+
+
 
         --Webhook stuff
         if Player.PlayerGui.EndGUI.Enabled then
@@ -351,10 +461,6 @@ else --Not in lobby
                 ReplicatedStorage.Core.CoreEvents.PartyEvents.DungeonComm:FireServer("TeleportAlone")
             end
             break
-        end
-
-        if DefeatedAllMobs then
-            CurStage = CurStage + 1
         end
     end
 end
