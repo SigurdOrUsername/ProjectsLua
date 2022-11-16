@@ -322,25 +322,31 @@ else --Not in lobby
     --Init doding stuff
 
     local Root
-    local ConstantSpace = 7
+    local ConstantSpace = 9
+
+    local BossOffsetY = 0
+    local BossOffsets = {
+        ["Ancient Rock Golem"] = Vector3.new(0, -35, 0),
+        ["Forgotten Rock Tortoise"] = Vector3.new(0, -25, 0)
+    }
 
     --Makes a grid around "root", so we can use it to find safe positions around the mobs
     local Parts = {}
-    for X = -6, 6 do
-        for Z = -6, 6 do
+    for X = -4.5, 4.5 do
+        for Z = -4.5, 4.5 do
             local Part = Instance.new("Part", workspace)
 
             Part.Name = "AutofarmPart"
-            Part.Transparency = 0.5
+            Part.Transparency = 0.2
             Part.Anchored = true
             Part.CanCollide = false
-            Part.Size = Vector3.new(Player.Character.HumanoidRootPart.Size.X, 200, Player.Character.HumanoidRootPart.Size.X)
+            Part.Size = Vector3.new(Player.Character.HumanoidRootPart.Size.X, 20, Player.Character.HumanoidRootPart.Size.X)
 
             coroutine.wrap(function()
                 while task.wait() do
                     if Part then
                         if Root then
-                            Part.CFrame = CFrame.new(Root.Position + Vector3.new(X * ConstantSpace, 0, Z * ConstantSpace))
+                            Part.CFrame = CFrame.new(Root.Position + Vector3.new(X * ConstantSpace, BossOffsetY, Z * ConstantSpace))
                         end
                     else
                         break
@@ -356,7 +362,7 @@ else --Not in lobby
         local IsSafe = true
 
         for Index, TouchingPart in next, GetTouchingParts(Part) do
-            if TouchingPart.Name ~= "AutofarmPart" and TouchingPart.Transparency ~= 1 and (workspace:FindFirstChild(TouchingPart.Name) or TouchingPart:IsDescendantOf(workspace.Filter.Effects)) then
+            if TouchingPart.Name ~= "AutofarmPart" and TouchingPart.Name ~= "Inner" and TouchingPart.Transparency ~= 1 and (workspace:FindFirstChild(TouchingPart.Name) or TouchingPart:IsDescendantOf(workspace.Filter.Effects)) then
                 IsSafe = false
             end
         end
@@ -395,7 +401,15 @@ else --Not in lobby
                     local SafePos = GetSafePosition("Closest")
 
                     if SafePos and Player.Character:FindFirstChild("HumanoidRootPart") then
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(SafePos.Position, Root.Position + Vector3.new(0, 1, 0))
+                        local LocalOffset = 0
+                        if BossOffsets[Root.Parent.Name] then
+                            BossOffsetY = BossOffsets[Root.Parent.Name].Y
+                            LocalOffset = BossOffsetY + SafePos.Size.Y * 2
+                        else
+                            BossOffsetY = 0
+                        end
+
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(SafePos.Position + Vector3.new(0, LocalOffset, 0), Root.Position + Vector3.new(0, 1, 0))
                         ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.MagicNetwork:FireServer("Swing", Root.Position)
                     end
                     if not Player.PlayerGui.GUI.HUD.Q:FindFirstChild("cdTemplate") or not Player.PlayerGui.GUI.HUD.E:FindFirstChild("cdTemplate") then
