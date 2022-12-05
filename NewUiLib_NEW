@@ -1297,7 +1297,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			end
 			return SliderFunc
 		end
-		function ContainerContent:Dropdown(text,list,callback)
+		function ContainerContent:Dropdown(text,list,callback,dropdownsize)
 			local DropFunc = {}
 			local Selected = text
 			local FrameSize = 43
@@ -1319,7 +1319,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			Dropdown.BackgroundColor3 = Color3.fromRGB(64, 68, 75)
 			Dropdown.ClipsDescendants = true
 			Dropdown.Position = UDim2.new(0.110937499, 0, 0.67653507, 0)
-			Dropdown.Size = UDim2.new(0, 457, 0, 43)
+			Dropdown.Size = UDim2.new(0, dropdownsize or 500, 0, 43)
 			Dropdown.AutoButtonColor = false
 			Dropdown.Font = Enum.Font.SourceSans
 			Dropdown.Text = ""
