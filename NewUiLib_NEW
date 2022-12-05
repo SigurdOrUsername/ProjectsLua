@@ -1319,7 +1319,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			Dropdown.BackgroundColor3 = Color3.fromRGB(64, 68, 75)
 			Dropdown.ClipsDescendants = true
 			Dropdown.Position = UDim2.new(0.110937499, 0, 0.67653507, 0)
-			Dropdown.Size = UDim2.new(0, dropdownsize or 500, 0, 43)
+			Dropdown.Size = UDim2.new(0, 500, 0, 43)
 			Dropdown.AutoButtonColor = false
 			Dropdown.Font = Enum.Font.SourceSans
 			Dropdown.Text = ""
@@ -1386,7 +1386,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			DropItemHolder.BackgroundTransparency = 1.000
 			DropItemHolder.BorderSizePixel = 0
 			DropItemHolder.Position = UDim2.new(-0.203539819, 0, 1.02380955, 0)
-			DropItemHolder.Size = UDim2.new(0, dropdownsize or 500, 0, 82)
+			DropItemHolder.Size = UDim2.new(0, 500, 0, dropdownsize or 500)
 			DropItemHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
 			DropItemHolder.ScrollBarThickness = 5
 			DropItemHolder.ScrollBarImageColor3 = Color3.fromRGB(41, 42, 48)
@@ -1506,7 +1506,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 				elseif ItemCount == 2 then
 					FrameSize = 107
 				elseif ItemCount >= 3 then
-					FrameSize = 133
+					FrameSize = dropdownsize or 500
 				end
 				local Item = Instance.new("TextButton")
 				local ItemCorner = Instance.new("UICorner")
@@ -1598,7 +1598,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 				elseif ItemCount == 2 then
 					FrameSize = 107
 				elseif ItemCount >= 3 then
-					FrameSize = 133
+					FrameSize = dropdownsize or 500
 				end
 				local Item = Instance.new("TextButton")
 				local ItemCorner = Instance.new("UICorner")
@@ -1618,7 +1618,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 				ItemCorner.CornerRadius = UDim.new(0, 4)
 				ItemCorner.Name = "ItemCorner"
 				ItemCorner.Parent = Item
-				DropItemHolder.CanvasSize = UDim2.new(0, 0, 0, DropLayout.AbsoluteContentSize.Y)
+				DropItemHolder.CanvasSize = UDim2.new(0, 0, 0, 700)
 
 				Item.MouseEnter:Connect(function()
 					TweenService:Create(
@@ -2746,4 +2746,3 @@ function Flux:Window(text, bottom,mainclr,toclose)
 	end
 	return Tabs
 end
-return Flux
