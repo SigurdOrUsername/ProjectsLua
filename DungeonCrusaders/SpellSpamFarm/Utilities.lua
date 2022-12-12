@@ -134,7 +134,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type)
 end
 
 ReturnTable.InventoryManager.GetEquippedWeapon = function()
-    for Index, Item in next, ReturnTable.nventoryManager.GetInventory("EquippedItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("EquippedItems") do
         if Item.FullItemInfo.type == "Weapon" then
             return Item
         end
