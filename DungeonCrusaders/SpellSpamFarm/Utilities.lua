@@ -18,7 +18,7 @@ ReturnTable.DungeonManager = {}
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
     local AllHasJoined = true
 
-    for Index, Plr in next, MultifarmInfo.Accounts do
+    for Index, Plr in next, getgenv().MultifarmInfo.Accounts do
         local PlrUser = Players:FindFirstChild(Plr)
 
         if not PlrUser then
@@ -51,7 +51,7 @@ ReturnTable.InventoryManager.GrabConstantItemInfo = function(Name)
     return AllItems[Name]
 end
 
-ReturnTable.InventoryManager.GetInventory = function(Type, a)
+ReturnTable.InventoryManager.GetInventory = function(Type)
     if Type == "InvItems" then
         local Items = ServerNetwork:InvokeServer("DataFunctions", {
             Function = "RetrieveItems"
@@ -65,7 +65,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type, a)
                     local InfoTable = {}
 
                     InfoTable.ItemStats = ActualItem
-                    InfoTable.FullItemInfo = InventoryManager.GrabConstantItemInfo(Name)
+                    InfoTable.FullItemInfo = ReturnTable.InventoryManager.GrabConstantItemInfo(Name)
                     InfoTable.ItemStats.Slot = Index
 
                     if not InfoTable.ItemStats.Tier then
@@ -98,7 +98,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type, a)
                                 local InfoTable = {}
 
                                 InfoTable.ItemStats = NonArmorItem
-                                InfoTable.FullItemInfo = InventoryManager.GrabConstantItemInfo(NonArmorName)
+                                InfoTable.FullItemInfo = ReturnTable.InventoryManager.GrabConstantItemInfo(NonArmorName)
 
                                 if not InfoTable.ItemStats.Tier then --If item for some reason dosent have a tier, assign it it's default tier
                                     InfoTable.ItemStats.Tier = InfoTable.FullItemInfo.Tier
@@ -111,7 +111,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type, a)
                                         local InfoTable = {}
 
                                         InfoTable.ItemStats = ArmorItem
-                                        InfoTable.FullItemInfo = InventoryManager.GrabConstantItemInfo(ArmorName)
+                                        InfoTable.FullItemInfo = ReturnTable.InventoryManager.GrabConstantItemInfo(ArmorName)
 
                                         if not InfoTable.ItemStats.Tier then --If item for some reason dosent have a tier, assign it it's default tier
                                             InfoTable.ItemStats.Tier = InfoTable.FullItemInfo.Tier
@@ -134,7 +134,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type, a)
 end
 
 ReturnTable.InventoryManager.GetEquippedWeapon = function()
-    for Index, Item in next, InventoryManager.GetInventory("EquippedItems") do
+    for Index, Item in next, ReturnTable.nventoryManager.GetInventory("EquippedItems") do
         if Item.FullItemInfo.type == "Weapon" then
             return Item
         end
@@ -148,7 +148,7 @@ ReturnTable.InventoryManager.GetEquippedArmor = function()
         ["Armor"] = {ItemStats = {[AutoEquipBest.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Armor"}}
     }
 
-    for Index, Item in next, InventoryManager.GetInventory("EquippedItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("EquippedItems") do
         if Item.FullItemInfo.BodyPart == "Legs" or Item.FullItemInfo.BodyPart == "Helmet" or Item.FullItemInfo.BodyPart == "Armor" then
             EquippedArmor[Item.FullItemInfo.BodyPart] = Item
         end
@@ -160,7 +160,7 @@ end
 ReturnTable.InventoryManager.GetEquippedJewelry = function()
     local EquippedJewelry = {}
 
-    for Index, Item in next, InventoryManager.GetInventory("EquippedItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("EquippedItems") do
         if Item.FullItemInfo.type == "Jewelry" and Item.ItemStats[AutoEquipBest.PreferedStat] then
             EquippedJewelry[#EquippedJewelry + 1] = Item
         end
@@ -178,11 +178,11 @@ ReturnTable.InventoryManager.GetBestWeapon = function()
     local Last = 0
     local BetterWeaponItem
 
-    local EquippedWeapon = InventoryManager.GetEquippedWeapon() or {
+    local EquippedWeapon = ReturnTable.InventoryManager.GetEquippedWeapon() or {
         ItemStats = {[AutoEquipBest.PreferedStat] = 0}
     }
 
-    for Index, Item in next, InventoryManager.GetInventory("InvItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         local ItemPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
 
         if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon.ItemStats[AutoEquipBest.PreferedStat] then
@@ -195,7 +195,7 @@ ReturnTable.InventoryManager.GetBestWeapon = function()
 end
 
 ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
-    local EquippedArmor = InventoryManager.GetEquippedArmor()
+    local EquippedArmor = ReturnTable.InventoryManager.GetEquippedArmor()
     local ArmorToEquip = {
         Legs,
         Helmet,
@@ -207,7 +207,7 @@ ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
         Armor = 0
     }
 
-    for Index, Item in next, InventoryManager.GetInventory("InvItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         if Item.FullItemInfo.BodyPart == "Legs" or Item.FullItemInfo.BodyPart == "Helmet" or Item.FullItemInfo.BodyPart == "Armor" then
             local ArmorType = Item.FullItemInfo.BodyPart
             local ArmorPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
@@ -228,11 +228,11 @@ ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
 end
 
 ReturnTable.InventoryManager.GetBestJewelry = function(WhichJewelry)
-    local EquippedJewelry = InventoryManager.GetEquippedJewelry()
+    local EquippedJewelry = ReturnTable.InventoryManager.GetEquippedJewelry()
     local JewelryToEquip
     local Last = 0
 
-    for Index, Item in next, InventoryManager.GetInventory("InvItems") do
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         if Item.FullItemInfo.type == "Jewelry" then
             local JewleryPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
 
@@ -254,13 +254,13 @@ end
 ReturnTable.InventoryManager.CanItemBeSold = function(Item)
     local ReturnValue = true
 
-    if table.find(Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
+    if table.find(getgenv().Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(getgenv().Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
         return false
     end
-    if Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
+    if getgenv().Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
         return false
     end
-    if Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
+    if getgenv().Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
         return false
     end
 
@@ -270,9 +270,9 @@ end
 ReturnTable.InventoryManager.GetItemsToSell = function()
     local ItemsToSell = {}
 
-    for Index, Item in next, InventoryManager.GetInventory("InvItems", "Inv") do
-        if InventoryManager.CanItemBeSold(Item) then
-            print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, InventoryManager.CanItemBeSold(Item))
+    for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems", "Inv") do
+        if ReturnTable.InventoryManager.CanItemBeSold(Item) then
+            print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, ReturnTable.InventoryManager.CanItemBeSold(Item))
             table.insert(ItemsToSell, Item)
         end
     end
