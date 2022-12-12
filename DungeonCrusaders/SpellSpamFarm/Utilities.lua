@@ -1,9 +1,19 @@
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.ServerNetwork
+local PartyEvents = ReplicatedStorage.Core.CoreEvents.PartyEvents
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local CoreGui = game:GetService("CoreGui")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Request = http_request or request or HttpPost or syn.request
+
 local ReturnTable = {}
 
 ReturnTable.LobbyManager = {}
 ReturnTable.InventoryManager = {}
 ReturnTable.DungeonManager = {}
-
 
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
     local AllHasJoined = true
