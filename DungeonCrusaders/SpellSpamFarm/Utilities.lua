@@ -2,14 +2,12 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.ServerNetwork
-local PartyEvents = ReplicatedStorage.Core.CoreEvents.PartyEvents
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
-local CoreGui = game:GetService("CoreGui")
-local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
 
 local ReturnTable = {}
+
+ReturnTable.ExploitEnv = getgenv()
 
 ReturnTable.LobbyManager = {}
 ReturnTable.InventoryManager = {}
@@ -18,7 +16,7 @@ ReturnTable.DungeonManager = {}
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
     local AllHasJoined = true
 
-    for Index, Plr in next, getgenv().MultifarmInfo.Accounts do
+    for Index, Plr in next, Utilities.ExploitEnv.MultifarmInfo.Accounts do
         local PlrUser = Players:FindFirstChild(Plr)
 
         if not PlrUser then
@@ -254,13 +252,13 @@ end
 ReturnTable.InventoryManager.CanItemBeSold = function(Item)
     local ReturnValue = true
 
-    if table.find(getgenv().Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(getgenv().Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
+    if table.find(Utilities.ExploitEnv.Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(Utilities.ExploitEnv.Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
         return false
     end
-    if getgenv().Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
+    if Utilities.ExploitEnv.Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
         return false
     end
-    if getgenv().Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
+    if Utilities.ExploitEnv.Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
         return false
     end
 
