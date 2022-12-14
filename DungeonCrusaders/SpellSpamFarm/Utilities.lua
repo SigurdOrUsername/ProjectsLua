@@ -1,4 +1,4 @@
-print("ver 1.0.0")
+print("ver 1.0.1")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -18,7 +18,7 @@ ReturnTable.DungeonManager = {}
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
     local AllHasJoined = true
 
-    for Index, Plr in next, Utilities.ExploitEnv.MultifarmInfo.Accounts do
+    for Index, Plr in next, ReturnTable.ExploitEnv.MultifarmInfo.Accounts do
         local PlrUser = Players:FindFirstChild(Plr)
 
         if not PlrUser then
@@ -254,13 +254,13 @@ end
 ReturnTable.InventoryManager.CanItemBeSold = function(Item)
     local ReturnValue = true
 
-    if table.find(Utilities.ExploitEnv.Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(Utilities.ExploitEnv.Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
+    if table.find(ReturnTable.ExploitEnv.Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(ReturnTable.ExploitEnv.Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
         return false
     end
-    if Utilities.ExploitEnv.Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
+    if ReturnTable.ExploitEnv.Autosell.KeepAllSpells and Item.FullItemInfo.type == "Spell" then
         return false
     end
-    if Utilities.ExploitEnv.Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
+    if ReturnTable.ExploitEnv.Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
         return false
     end
 
