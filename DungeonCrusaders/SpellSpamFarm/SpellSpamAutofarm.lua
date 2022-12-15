@@ -1,3 +1,5 @@
+print("client: 1.0.0")
+
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --Auto equips [Armor, Weapon, Jewelry]
     PreferedStat = "MagicDamage" --//[PhysicalDamage, MagicDamage, Health]
@@ -27,12 +29,12 @@ getgenv().ExtraDungeonInfo = {
 
     --These functions exist so that the roblox error code 286 whatever thingy is minigated (if you sever hop too much, you might get soft ip-banned from roblox for a couple of hours)
 
-    WaitTimeBeforeStartingDungeon = 80, --//If you want delay before the dungeon stats
-    WaitTimeBeforeLeavingDungeon = 80, --//If you want delay before leaving the dungeon
+    WaitTimeBeforeStartingDungeon = 10, --//If you want delay before the dungeon stats
+    WaitTimeBeforeLeavingDungeon = 50, --//If you want delay before leaving the dungeon
 
     --For offsets when autofarming
     Cords = {
-        X = 0,
+        X = 30,
         Y = 1,
         Z = 0,
     }
@@ -42,14 +44,14 @@ getgenv().DungeonInfo = {
     PartyInfo = {
 		Difficulty = "Chaos", --//Difficult level [Novice [1-5], Advanced [5-10], Chaos [10 - inf]] / Auto
 		Hardcore = false, --//Need to be lvl 11
-		Extreme = true,--//Need to be lvl 12
-		Private = false,
+		Extreme = true, --//Need to be lvl 12
+		Private = true,
 		Dungeon = "Jungle" --//Dungeon name / Auto
 	}
 }
 
 getgenv().MultifarmInfo = {
-    DoMultiFarm = true,
+    DoMultiFarm = false,
 
     Host = "Wanwood1960907364092",
     Accounts = {
@@ -59,7 +61,7 @@ getgenv().MultifarmInfo = {
 
 getgenv().Webhook = {
     SendWebooks = true,
-    Url = "",
+    Url = "https://discord.com/api/webhooks/1051954513378033764/oA1bfs0hOtdm5bxmn_GyDtK6lG3GCAzF797q26yxK312UtfDhFu4cXTdd2ioSGzlWmqv",
 
     UserId = "everyone", --Which person it will ping. UserId/everyone/here/Whatnot
     PingForRarity = { --Will send you a ping if any of these rarities are dropped
@@ -72,7 +74,9 @@ getgenv().Webhook = {
     }
 }
 
-repeat task.wait() until game:IsLoaded()
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -80,8 +84,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.ServerNetwork
 local PartyEvents = ReplicatedStorage.Core.CoreEvents.PartyEvents
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local RunService = game:GetService("RunService")
 
-repeat task.wait() until Player:FindFirstChild("leaderstats")
+Player:WaitForChild("leaderstats", math.huge)
 
 local UserService = game:GetService("UserService")
 local CoreGui = game:GetService("CoreGui")
@@ -115,7 +120,7 @@ end)
 
 if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     --//Equip better stuff
-    if getgenv().AutoEquipBest.DoAutoEquipBest then
+    if Utilities.ExploitEnv.AutoEquipBest.DoAutoEquipBest then
         --EQUIP BEST WEAPON
         local BetterWeaponItem = InventoryManager.GetBestWeapon()
 
@@ -151,43 +156,49 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
     end
     
     --//Autosell stuff
-    if getgenv().Autosell.DoAutoSell then
-        for Index, Item in next, InventoryManager.GetItemsToSell() do
+    if Utilities.ExploitEnv.Autosell.DoAutoSell then
+        local ItemsToSell = InventoryManager.GetItemsToSell()
+
+        if ItemsToSell then
+            for Index, Item in next, InventoryManager.GetItemsToSell() do
+                ServerNetwork:InvokeServer("ShopFunctions", {
+                    Function = "InsertItem",
+                    Slot = Item.ItemStats.Slot
+                })
+            end
+
             ServerNetwork:InvokeServer("ShopFunctions", {
-                Function = "InsertItem",
-                Slot = Item.ItemStats.Slot
+                Function = "CompleteTransaction"
             })
         end
-
-        ServerNetwork:InvokeServer("ShopFunctions", {
-            Function = "CompleteTransaction"
-        })
     end
 
-    if getgenv().ExtraDungeonInfo.WaitTimeBeforeStartingDungeon > 0 then
-        task.wait(math.random(getgenv().ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/2, getgenv().ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
+    --//Wait before dungeon starts
+    if Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon > 0 then
+        task.wait(math.random(Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/2, Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
     end
 
     --//Multi farm
-    if getgenv().MultifarmInfo.DoMultiFarm then
-        if Player.Name == getgenv().MultifarmInfo.Host then
-            PartyEvents.Request:InvokeServer("Create", getgenv().DungeonInfo)
+    if Utilities.ExploitEnv.MultifarmInfo.DoMultiFarm then
+        if Player.Name == Utilities.ExploitEnv.MultifarmInfo.Host then
+            PartyEvents.Request:InvokeServer("Create", Utilities.ExploitEnv.DungeonInfo)
 
-            repeat
-                for Index, Plr in next, getgenv().MultifarmInfo.Accounts do
+            while not LobbyManager.AllUsersHaveJoined() do
+                for Index, Plr in next, Utilities.ExploitEnv.MultifarmInfo.Accounts do
                     local PlrUser = Players:FindFirstChild(Plr)
 
                     if PlrUser then
                         PartyEvents.Comm:FireServer("Invite", PlrUser)
                     end
                 end
-                task.wait(5)
-            until LobbyManager.AllUsersHaveJoined()
+
+                task.wait(2.5)
+            end
         else
             --This will fire when you get an invitation to a dungeon in the lobby
             Player.PlayerGui.GUI.InviteFrame:GetPropertyChangedSignal("Visible"):Connect(function()
                 PartyEvents.Request:InvokeServer("Join", {
-                    Host = Players:FindFirstChild(getgenv().MultifarmInfo.Host).UserId
+                    Host = Players:FindFirstChild(Utilities.ExploitEnv.MultifarmInfo.Host).UserId
                 })
             end)
         end
@@ -197,23 +208,24 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
             if Teammate:FindFirstChild("Level") then
                 local UsernameFromUserId = UserService:GetUserInfosByUserIdsAsync({tonumber(Teammate.Name)})[1].Username
 
-                if getgenv().MultifarmInfo.Host ~= UsernameFromUserId and not table.find(getgenv().MultifarmInfo.Accounts, UsernameFromUserId) then
-                    warn(UsernameFromUserId)
+                if Utilities.ExploitEnv.MultifarmInfo.Host ~= UsernameFromUserId and not table.find(Utilities.ExploitEnv.MultifarmInfo.Accounts, UsernameFromUserId) then
                     PartyEvents.Comm:FireServer("Kick", Players:FindFirstChild(UsernameFromUserId))
                 end
             end
         end
     else
-        PartyEvents.Request:InvokeServer("Create", getgenv().DungeonInfo)
+        PartyEvents.Request:InvokeServer("Create", Utilities.ExploitEnv.DungeonInfo)
     end
 
     PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
-    repeat task.wait() until game:IsLoaded()
-    repeat Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame task.wait() until Player.PlayerGui.GUI.GameInfo.MobCount.Text ~= "Start Pending..."
+    while Player:WaitForChild("PlayerGui", math.huge).GUI.GameInfo.MobCount.Text == "Start Pending..." do
+        Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame
+        task.wait()
+    end
 
     Player.Character.Info:Destroy() --God mode
-    local OldInventory = InventoryManager.GetInventory("InvItems") --//For checking when items get added
+    local OldInventory = InventoryManager.GetInventory("InvItems") --For checking when items get added
     local TimeAtStartOfDungeon = os.time()
 
     --//Spell spam bypass
@@ -238,52 +250,12 @@ else --Not in lobby
             Child:Destroy()
         end
     end)
-
-    --//Handling leaving in multi farm
-    if getgenv().MultifarmInfo.DoMultiFarm then
-        --This will fire when you get an invitation in the dungeon
-        Player.PlayerGui.GUI.InviteFrame:GetPropertyChangedSignal("Visible"):Connect(function()
-            PartyEvents.DungeonComm:FireServer("JoinDungeonParty")
-        end)
-    end
-
-    local CurStage = 1
-    local HasWaited = false
-    while task.wait() do
-        local KilledAllMobs = true
-
-        --If at last stage, wait if the user specified it
-        if not workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage + 1)) and not HasWaited then
-            HasWaited = true
-
-            if getgenv().ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon > 0 then
-                task.wait(math.random(getgenv().ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon/2, getgenv().ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon))
-            end
-        end
-
-        --Actually murdering the mods
-        if Player.Character:FindFirstChild("HumanoidRootPart") and workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)) then
-            for Index, Mob in next, workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage)):GetChildren() do
-                if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") and Mob:FindFirstChild("DisplayName") or Mob:FindFirstChild("Animate") then
-
-                    while Mob:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("HumanoidRootPart") do
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(getgenv().ExtraDungeonInfo.Cords.X, getgenv().ExtraDungeonInfo.Cords.Y, getgenv().ExtraDungeonInfo.Cords.Z), Mob.HumanoidRootPart.Position)
-                        coroutine.wrap(DungeonManager.FireSpells)()
-                        task.wait()
-                    end
-
-                    KilledAllMobs = false
-                end
-            end
-
-            if KilledAllMobs then
-                CurStage = CurStage + 1
-            end
-        end
-
-        if Player.PlayerGui.EndGUI.Enabled then
+    
+    --//Webhook and leaving the game
+    coroutine.wrap(function() --In a coroutine to bypass waiting for boss to be dead, incase it dies when other accounts are waiting [Multifarm]
+        Player.PlayerGui.EndGUI:GetPropertyChangedSignal("Enabled"):Connect(function()
             --Webhook stuff
-            if getgenv().Webhook.SendWebooks then
+            if Utilities.ExploitEnv.Webhook.SendWebooks then
                 local AllFeilds = {}
                 local PingContent = ""
 
@@ -295,8 +267,8 @@ else --Not in lobby
                 for Index, GotItem in next, InventoryManager.GetInventory("InvItems") do
                     if Index > #OldInventory then
 
-                        if table.find(getgenv().Webhook.PingForRarity, GotItem.ItemStats.Tier) then
-                            PingContent = "<@" .. getgenv().Webhook.UserId .. ">"
+                        if table.find(Utilities.ExploitEnv.Webhook.PingForRarity, GotItem.ItemStats.Tier) then
+                            PingContent = "<@" .. Utilities.ExploitEnv.Webhook.UserId .. ">"
                         end
 
                         table.insert(AllFeilds, {
@@ -308,7 +280,7 @@ else --Not in lobby
                 end
 
                 DungeonManager.SendWebook({
-                    Title = "Completed dungeon " .. getgenv().DungeonInfo.PartyInfo.Dungeon .. " [" .. getgenv().DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(getgenv().DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
+                    Title = "Completed dungeon " .. Utilities.ExploitEnv.DungeonInfo.PartyInfo.Dungeon .. " [" .. Utilities.ExploitEnv.DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(Utilities.ExploitEnv.DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
                     Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``\nAmount of runs finished: ``" .. StorageFile .. "``",
                     Content = PingContent,
                     Feilds = AllFeilds,
@@ -319,18 +291,61 @@ else --Not in lobby
             writefile("StorageFile.txt", tostring(tonumber(StorageFile) + 1))
 
             --Teleporting back to lobby
-            if getgenv().ExtraDungeonInfo.RepeatDungeon then
+            if Utilities.ExploitEnv.ExtraDungeonInfo.RepeatDungeon then
                 PartyEvents.DungeonRequest:InvokeServer("TeleportPartyDungeon")
             else
-                if getgenv().MultifarmInfo.DoMultiFarm then
-                    if Player.Name == getgenv().MultifarmInfo.Host then
+                if Utilities.ExploitEnv.MultifarmInfo.DoMultiFarm then
+
+                    --Leaving dungeon as multi farm
+                    if Player.Name == Utilities.ExploitEnv.MultifarmInfo.Host then
                         PartyEvents.DungeonRequest:InvokeServer("TeleportPartyLobby")
+                    else
+                        while task.wait() do
+                            warn("joining")
+                            PartyEvents.DungeonComm:FireServer("JoinDungeonParty")
+                        end
                     end
+
                 else
-                    PartyEvents.DungeonRequest:InvokeServer("TeleportAlone")
+                    PartyEvents.DungeonComm:FireServer("TeleportAlone")
                 end
             end
-            break
+        end)
+    end)()
+
+    local CurStage = 1
+    local HasWaited = false
+    while task.wait() do
+        local KilledAllMobs = true
+        local StageObject = workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage))
+
+        --If at last stage, wait if the user specified it
+        if not workspace.Mobs:FindFirstChild("Stage" .. tostring(CurStage + 1)) and not HasWaited then
+            HasWaited = true
+
+            if Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon > 0 then
+                task.wait(math.random(Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon/2, Utilities.ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon))
+            end
+        end
+
+        --Actually murdering the mods
+        if Player.Character:FindFirstChild("HumanoidRootPart") and StageObject then
+            for Index, Mob in next, StageObject:GetChildren() do
+                if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") and Mob:FindFirstChild("DisplayName") or Mob:FindFirstChild("Animate") then
+
+                    while Mob:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("HumanoidRootPart") do
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(Utilities.ExploitEnv.ExtraDungeonInfo.Cords.X, Utilities.ExploitEnv.ExtraDungeonInfo.Cords.Y, Utilities.ExploitEnv.ExtraDungeonInfo.Cords.Z), Mob.HumanoidRootPart.Position)
+                        coroutine.wrap(DungeonManager.FireSpells)()
+                        task.wait()
+                    end
+
+                    KilledAllMobs = false
+                end
+            end
+
+            if KilledAllMobs then
+                CurStage = CurStage + 1
+            end
         end
     end
 end
