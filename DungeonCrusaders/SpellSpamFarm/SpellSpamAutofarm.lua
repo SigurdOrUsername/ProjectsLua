@@ -1,4 +1,4 @@
-print("client: 1.0.0")
+print("client: 1.0.1")
 
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --Auto equips [Armor, Weapon, Jewelry]
@@ -61,7 +61,7 @@ getgenv().MultifarmInfo = {
 
 getgenv().Webhook = {
     SendWebooks = true,
-    Url = "https://discord.com/api/webhooks/1051954513378033764/oA1bfs0hOtdm5bxmn_GyDtK6lG3GCAzF797q26yxK312UtfDhFu4cXTdd2ioSGzlWmqv",
+    Url = "",
 
     UserId = "everyone", --Which person it will ping. UserId/everyone/here/Whatnot
     PingForRarity = { --Will send you a ping if any of these rarities are dropped
@@ -99,19 +99,6 @@ local Utilities = loadstring(game:HttpGet("https://raw.githubusercontent.com/Sig
 local LobbyManager = Utilities.LobbyManager
 local InventoryManager = Utilities.InventoryManager
 local DungeonManager = Utilities.DungeonManager
-
---Store how many runs you've done
-local StorageFile
-local HasStorageFile = pcall(function()
-    readfile("StorageFile.txt")
-end)
-
-if not HasStorageFile then
-    writefile("StorageFile.txt", "0")
-    StorageFile = readfile("StorageFile.txt")
-else
-    StorageFile = readfile("StorageFile.txt")
-end
 
 --If the user gets kicked, send them back to the lobby
 CoreGui.RobloxPromptGui.promptOverlay.DescendantAdded:Connect(function(Child)
@@ -194,6 +181,7 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then --In lobby
 
                 task.wait(2.5)
             end
+
         else
             --This will fire when you get an invitation to a dungeon in the lobby
             Player.PlayerGui.GUI.InviteFrame:GetPropertyChangedSignal("Visible"):Connect(function()
@@ -288,6 +276,19 @@ else --Not in lobby
                 })
             end
 
+            --Store / read how many runs you've done
+            local StorageFile
+            local HasStorageFile = pcall(function()
+                readfile("StorageFile.txt")
+            end)
+
+            if not HasStorageFile then
+                writefile("StorageFile.txt", "0")
+                StorageFile = readfile("StorageFile.txt")
+            else
+                StorageFile = readfile("StorageFile.txt")
+            end
+
             writefile("StorageFile.txt", tostring(tonumber(StorageFile) + 1))
 
             --Teleporting back to lobby
@@ -331,7 +332,7 @@ else --Not in lobby
         --Actually murdering the mods
         if Player.Character:FindFirstChild("HumanoidRootPart") and StageObject then
             for Index, Mob in next, StageObject:GetChildren() do
-                if Mob.Name ~= "Diversion" and Mob:FindFirstChild("HumanoidRootPart") and Mob:FindFirstChild("DisplayName") or Mob:FindFirstChild("Animate") then
+                if Mob:FindFirstChild("HumanoidRootPart") and Mob:FindFirstChild("DisplayName") or Mob:FindFirstChild("Animate") then
 
                     while Mob:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("HumanoidRootPart") do
                         Player.Character.HumanoidRootPart.CFrame = CFrame.lookAt(Mob.HumanoidRootPart.Position + Vector3.new(Utilities.ExploitEnv.ExtraDungeonInfo.Cords.X, Utilities.ExploitEnv.ExtraDungeonInfo.Cords.Y, Utilities.ExploitEnv.ExtraDungeonInfo.Cords.Z), Mob.HumanoidRootPart.Position)
