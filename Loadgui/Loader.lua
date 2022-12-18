@@ -1,6 +1,7 @@
 local ScriptsForPlaceId = {
     ["3891149796"] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/BoogaBooga/MainGui.lua", --Booga booga
-    [""] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/ClickerSimulator/MainGui.lua" --Clicker Simulator
+    [""] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/ClickerSimulator/MainGui.lua", --Clicker Simulator
+    ["601130232"] = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/Beeswarm%20Simulator/Beeswarm%20GUI.lua" --Beeswarm Simulator
 }
 
 
@@ -11,7 +12,7 @@ local Script = ScriptsForPlaceId[tostring(game.GameId)]
 
 if Script == nil and GameName:lower():find("project") then
     warn("Project pokemon game detected!, changing script to PP gui")
-    Script = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/PPGames/MainGui.lua"
+    Script = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/PPGamesGUI"
 end
 
 local RanSuccessfully, Error = pcall(function()
