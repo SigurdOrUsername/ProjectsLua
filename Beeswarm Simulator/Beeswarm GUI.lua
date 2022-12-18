@@ -33,7 +33,7 @@ local Flux = loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOr
 
 local Window = Flux:Window("Lol", "Bee Swarm Simulator", Color3.fromRGB(255, 110, 48), Enum.KeyCode.RightShift)
 local World = Window:Tab("World", "http://www.roblox.com/asset/?id=6023426915")
-local Feilds = Window:Tab("Feilds", "http://www.roblox.com/asset/?id=6023426915")
+local Fields = Window:Tab("Fields", "http://www.roblox.com/asset/?id=6023426915")
 local AutoQuest = Window:Tab("Auto quest", "http://www.roblox.com/asset/?id=6023426915")
 
 --UI
@@ -44,6 +44,8 @@ local WorldInfo = {
     AutoGrabTokens = false,
     AutoGrabTokensRadius = 100,
     IgnoreRadiusCheck = false,
+
+    SliderObject,
 }
 
 WorldInfo.GrabAllCollectableTokens = function()
@@ -87,11 +89,13 @@ World:Button("Grab all current tokens", "Grab all current tokens in the game", f
 end)
 
 World:Line()
-World:Toggle("Ignore radius check", "Ignores the radius check when collecting new tokens added to the game", function(Value)
+World:Toggle("Ignore radius check", "Ignores the radius check when collecting new tokens added to the game", false, function(Value)
+    --If the user does not want the radius check to apply, make the slider invisible to hinder confusion
+    WorldInfo.SliderObject.Visible = not Value
     WorldInfo.IgnoreRadiusCheck = Value
 end)
 
-World:Slider("Radius of 'Auto grab tokens when added'", "If the radius is higher than this value, the token wont be collected (Can be ignored with toggle above)", 5, 100, 5, function(Value)
+_, WorldInfo.SliderObject = World:Slider("Radius of 'Auto grab tokens when added'", "If the radius is higher than this value, the token wont be collected (Can be ignored with toggle above)", 5, 100, 5, function(Value)
     WorldInfo.AutoGrabTokensRadius = Value
 end)
 
@@ -120,7 +124,7 @@ workspace.Collectibles.ChildAdded:Connect(function(Child)
 
 end)
 
---FEILDS
+--FIELDS
 
 --AUTO QUEST
 
