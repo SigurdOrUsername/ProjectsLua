@@ -12,7 +12,7 @@ local Script = ScriptsForPlaceId[tostring(game.GameId)]
 
 if Script == nil and GameName:lower():find("project") then
     warn("Project pokemon game detected!, changing script to PP gui")
-    Script = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/PPGamesGUI"
+    Script = "https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/PPGames/MainGui.lua"
 end
 
 local RanSuccessfully, Error = pcall(function()
