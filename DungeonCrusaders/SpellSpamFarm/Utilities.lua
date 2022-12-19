@@ -270,6 +270,7 @@ end
 ReturnTable.InventoryManager.GetItemsToSell = function()
     local ItemsToSell = {}
 
+    warn("FIRING FUNC")
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems", "Inv") do
         if ReturnTable.InventoryManager.CanItemBeSold(Item) then
             print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, ReturnTable.InventoryManager.CanItemBeSold(Item))
