@@ -1,4 +1,4 @@
-print("client: 1.0.2")
+print("client: 1.0.3")
 
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --//Auto equips [Armor, Weapon, Jewelry]
@@ -31,7 +31,7 @@ getgenv().ExtraDungeonInfo = {
 
     WaitTimeBeforeStartingDungeon = 80, --//If you want delay before the dungeon stats
     WaitTimeBeforeLeavingDungeon = 60, --//If you want delay before leaving the dungeon
-    TakeBreakAfterXRuns = 10, --//This will wait in the loby for 5 minutes when x runs have been reached
+    TakeBreakAfterXRuns = math.random(5, 15), --//This will wait in the loby for 5 minutes when x runs have been reached
 
     --For offsets when autofarming
     Cords = {
@@ -43,11 +43,11 @@ getgenv().ExtraDungeonInfo = {
 
 getgenv().DungeonInfo = {
     PartyInfo = {
-		Difficulty = "Chaos", --//Difficult level [Novice [1-5], Advanced [5-10], Chaos [10 - inf]]
-		Hardcore = true, --//Need to be lvl 11
-		Extreme = false, --//Need to be lvl 12
+		Difficulty = "Auto", --//Difficult level [Novice, Advanced, Chaos] / Auto [If you want the script to select the dungeon for you]
+		Hardcore = false, --//Need to be lvl 11+
+		Extreme = false, --//Need to be lvl 12+
 		Private = true,
-		Dungeon = "Snow" --//Dungeon name
+		Dungeon = "Auto" --//Dungeon name / Auto [If you want the script to select difficulty for you]
 	}
 }
 
@@ -62,9 +62,9 @@ getgenv().MultifarmInfo = {
 
 getgenv().Webhook = {
     SendWebooks = true,
-    Url = "",
+    Url = "https://discord.com/api/webhooks/1051954513378033764/oA1bfs0hOtdm5bxmn_GyDtK6lG3GCAzF797q26yxK312UtfDhFu4cXTdd2ioSGzlWmqv",
 
-    UserId = "everyone", --Which person it will ping. UserId/everyone/here/Whatnot
+    UserId = "everyone", --Which person it will ping. UserId/everyone/here/whatnot
     PingForRarity = { --Will send you a ping if any of these rarities are dropped
         "Mythic",
         "Legendary",
@@ -179,6 +179,15 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
         task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/2, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
     end
 
+    --If the user wants the script to select the best dungeon / difficulty
+    if ExploitEnv.DungeonInfo.PartyInfo.Difficult == "Auto" or ExploitEnv.DungeonInfo.PartyInfo.Dungeon == "Auto" then
+        local BestDungeon, BestDifficulty = Utilities.LobbyManager.GetBestDungeonAndDifficulty()
+
+        --Replacing Dungeon = "Auto" and Difficulty = "Auto" in the DungeonInfo table
+        ExploitEnv.DungeonInfo.PartyInfo.Dungeon = BestDungeon
+        ExploitEnv.DungeonInfo.PartyInfo.Difficulty = BestDifficulty
+    end
+
     --Multi farm
     if ExploitEnv.MultifarmInfo.DoMultiFarm then
         if Player.Name == ExploitEnv.MultifarmInfo.Host then
@@ -283,7 +292,7 @@ else --Not in lobby
 
                 DungeonManager.SendWebook({
                     Title = "Completed dungeon " .. ExploitEnv.DungeonInfo.PartyInfo.Dungeon .. " [" .. ExploitEnv.DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(ExploitEnv.DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
-                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``\nAmount of runs finished: ``" .. StorageFile .. "``",
+                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``",
                     Content = PingContent,
                     Feilds = AllFeilds,
                     FooterText = "Completed with a time of: " .. Player.PlayerGui.GUI.Top.Timer.Text .. " (Took " .. os.time() - TimeAtStartOfDungeon .. " sec), \nUser local time: " .. os.date()
