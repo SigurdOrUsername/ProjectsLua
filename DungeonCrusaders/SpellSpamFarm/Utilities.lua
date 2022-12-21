@@ -1,4 +1,4 @@
-print("server: 1.0.5")
+print("server: 1.0.6")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -34,9 +34,9 @@ end
 ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
     local AllLevelReqs = require(ReplicatedStorage.Core.CoreInfo.PartyLevels.RequiredLevels)
 
-    local RawEquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
-        Function = "RetrieveEquippedLoadout",
-        userId = Player.userId
+    local PlayerLevel = ServerNetwork:InvokeServer("DataFunctions", {
+        Function = "RetrieveLevelFromPlayer",
+        Player = Player
     })
 
     local BestDungeon
@@ -46,9 +46,14 @@ ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
     for Index, Dungeon in next, Player.PlayerGui.GUI.Party.CreateFrame.Dungeons:GetChildren() do
         if Dungeon:IsA("Frame") then
             local ImageButton = Dungeon:FindFirstChildWhichIsA("ImageButton")
-            
-            for Difficulty, LevelNeeded in next, AllLevelReqs[ImageButton.Name] do
-                if LevelNeeded >= LastMatched and LevelNeeded <= RawEquippedItems.Level then
+            local LevelReqs = AllLevelReqs[ImageButton.Name]
+
+            LevelReqs.Normal = nil
+            LevelReqs.Hardcore = nil
+            LevelReqs.Extreme = nil
+
+            for Difficulty, LevelNeeded in next, LevelReqs do
+                if LevelNeeded >= LastMatched and LevelNeeded <= PlayerLevel then
                     LastMatched = LevelNeeded
                     BestDifficulty = Difficulty
                     BestDungeon = ImageButton.Name
