@@ -1,4 +1,4 @@
-print("server: 1.0.4")
+print("server: 1.0.5")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -230,7 +230,7 @@ ReturnTable.InventoryManager.GetBestWeapon = function()
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         local ItemPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat]
 
-        if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
+        if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > LastMatched and ItemPreferedStat > EquippedWeapon.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
             LastMatched = ItemPreferedStat
             BetterWeaponItem = Item
         end
