@@ -1,4 +1,4 @@
-print("server: 1.0.1")
+print("server: 1.0.3")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -14,6 +14,22 @@ ReturnTable.ExploitEnv = getgenv()
 ReturnTable.LobbyManager = {}
 ReturnTable.InventoryManager = {}
 ReturnTable.DungeonManager = {}
+
+ReturnTable.LobbyManager.ReadWriteStorageFile = function()
+    local StorageFile
+    local HasStorageFile = pcall(function()
+        readfile("StorageFile.txt")
+    end)
+
+    if not HasStorageFile then
+        writefile("StorageFile.txt", "0")
+        StorageFile = readfile("StorageFile.txt")
+    else
+        StorageFile = readfile("StorageFile.txt")
+    end
+
+    return StorageFile
+end
 
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
     local AllHasJoined = true
@@ -270,7 +286,6 @@ end
 ReturnTable.InventoryManager.GetItemsToSell = function()
     local ItemsToSell = {}
 
-    warn("FIRING FUNC")
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems", "Inv") do
         if ReturnTable.InventoryManager.CanItemBeSold(Item) then
             print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, ReturnTable.InventoryManager.CanItemBeSold(Item))
