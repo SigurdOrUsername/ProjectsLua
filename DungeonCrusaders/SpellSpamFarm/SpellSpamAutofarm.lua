@@ -62,7 +62,7 @@ getgenv().MultifarmInfo = {
 
 getgenv().Webhook = {
     SendWebooks = true,
-    Url = "https://discord.com/api/webhooks/1051954513378033764/oA1bfs0hOtdm5bxmn_GyDtK6lG3GCAzF797q26yxK312UtfDhFu4cXTdd2ioSGzlWmqv",
+    Url = "",
 
     UserId = "everyone", --Which person it will ping. UserId/everyone/here/whatnot
     PingForRarity = { --Will send you a ping if any of these rarities are dropped
