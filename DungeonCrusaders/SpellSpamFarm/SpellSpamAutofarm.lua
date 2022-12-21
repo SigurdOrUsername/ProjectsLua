@@ -1,13 +1,14 @@
-print("client: 1.0.3")
+print("client: 1.0.4")
 
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --//Auto equips [Armor, Weapon, Jewelry]
     PreferedStat = "MagicDamage" --//[PhysicalDamage, MagicDamage, Health]
 }
 
-getgenv().Autosell = {
-    DoAutoSell = true,
+getgenv().Autosell = {  
+    DoAutoSell = false,
 
+    SellTriplicatedSpells = true, --//Will keep all spells til you have 3 of them, if you get more after you have 3, script will sell it [KeepAllSpells will overrule this setting]
     KeepAllSpells = true, --//Wont sell any spells if true [This keeps all spells, regardless of name and rarity]
     KeepAllJewelery = false, --//Wont sell any jewelry if true [This keeps all jewelry, regardless of name and rarity]
 
@@ -231,11 +232,14 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
     PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     while Player:WaitForChild("PlayerGui", math.huge).GUI.GameInfo.MobCount.Text == "Start Pending..." do
-        Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame
+        Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame * CFrame.new(0, 2, 0)
         task.wait()
     end
 
-    Player.Character.Info:Destroy() --God mode
+    --God mode
+    Player.Character.Info:Destroy()
+    Player.Character.IsDead:Destroy()
+
     local OldInventory = InventoryManager.GetInventory("InvItems") --For checking when items get added
     local TimeAtStartOfDungeon = os.time()
 
@@ -245,6 +249,8 @@ else --Not in lobby
     end)
     Player.CharacterAdded:Connect(function(Char)
         Player.Character:WaitForChild("Info"):Destroy()
+        Player.Character:WaitForChild("IsDead"):Destroy()
+
         Char.ChildAdded:Connect(function(Child)
             DungeonManager.DestroyIfSpellCooldown(Child)
         end)
@@ -270,9 +276,9 @@ else --Not in lobby
                 local AllFeilds = {}
                 local PingContent = ""
 
-                local RawEquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
-                    Function = "RetrieveEquippedLoadout",
-                    userId = Player.userId
+                local PlayerLevel = ServerNetwork:InvokeServer("DataFunctions", {
+                    Function = "RetrieveLevelFromPlayer",
+                    Player = Player
                 })
 
                 for Index, GotItem in next, InventoryManager.GetInventory("InvItems") do
@@ -291,8 +297,8 @@ else --Not in lobby
                 end
 
                 DungeonManager.SendWebook({
-                    Title = "Completed dungeon " .. ExploitEnv.DungeonInfo.PartyInfo.Dungeon .. " [" .. ExploitEnv.DungeonInfo.PartyInfo.Difficulty .. "]," .. " [Hardcore: " .. tostring(ExploitEnv.DungeonInfo.PartyInfo.Hardcore) .. "]," .. " [Extreme: " .. tostring(DungeonInfo.PartyInfo.Extreme) .. "]",
-                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(RawEquippedItems.Level) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``",
+                    Title = "Completed dungeon idk lol [" .. Player.PlayerGui.GUI.HUD.Mode.Text .. ", " .. Player.PlayerGui.GUI.HUD.Mode.Text .. "]",
+                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(PlayerLevel) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``",
                     Content = PingContent,
                     Feilds = AllFeilds,
                     FooterText = "Completed with a time of: " .. Player.PlayerGui.GUI.Top.Timer.Text .. " (Took " .. os.time() - TimeAtStartOfDungeon .. " sec), \nUser local time: " .. os.date()
