@@ -114,7 +114,7 @@ end)
 if ReplicatedFirst:FindFirstChild("IsLobby") then
     --Taking a break after X runs
     local StorageFile = tonumber(LobbyManager.ReadWriteStorageFile())
-    if ExploitEnv.ExtraDungeonInfo.TakeBreakAfterXRuns >= StorageFile then
+    if StorageFile >= ExploitEnv.ExtraDungeonInfo.TakeBreakAfterXRuns then
         warn("taking a break")
         writefile("StorageFile.txt", "0")
         task.wait(300)
@@ -181,7 +181,7 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
 
     --If the user wants the script to select the best dungeon / difficulty
     if ExploitEnv.DungeonInfo.PartyInfo.Difficult == "Auto" or ExploitEnv.DungeonInfo.PartyInfo.Dungeon == "Auto" then
-        local BestDungeon, BestDifficulty = Utilities.LobbyManager.GetBestDungeonAndDifficulty()
+        local BestDungeon, BestDifficulty = LobbyManager.GetBestDungeonAndDifficulty()
 
         --Replacing Dungeon = "Auto" and Difficulty = "Auto" in the DungeonInfo table
         ExploitEnv.DungeonInfo.PartyInfo.Dungeon = BestDungeon
@@ -299,8 +299,8 @@ else --Not in lobby
                 })
             end
 
-            local StorageFile = LobbyManager.ReadWriteStorageFile()
-            writefile("StorageFile.txt", tostring(tonumber(StorageFile) + 1))
+            local StorageFile = tonumber(LobbyManager.ReadWriteStorageFile())
+            writefile("StorageFile.txt", tostring(StorageFile + 1))
 
             --Teleporting back to lobby
             if ExploitEnv.ExtraDungeonInfo.RepeatDungeon then
