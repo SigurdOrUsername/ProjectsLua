@@ -1,4 +1,4 @@
-print("server: 1.0.3")
+print("server: 1.0.4")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -29,6 +29,36 @@ ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     end
 
     return StorageFile
+end
+
+ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
+    local AllLevelReqs = require(ReplicatedStorage.Core.CoreInfo.PartyLevels.RequiredLevels)
+
+    local RawEquippedItems = ServerNetwork:InvokeServer("DataFunctions", {
+        Function = "RetrieveEquippedLoadout",
+        userId = Player.userId
+    })
+
+    local DungeonToDo
+    local DifficultyToDo
+    local LastMatched = 0
+
+    for Index, Dungeon in next, Player.PlayerGui.GUI.Party.CreateFrame.Dungeons:GetChildren() do
+        if Dungeon:IsA("Frame") then
+            local ImageButton = Dungeon:FindFirstChildWhichIsA("ImageButton")
+            local LevelReq = AllLevelReqs[ImageButton.Name]
+            
+            for Difficulty, LevelNeeded in next, LevelReq do
+                if LevelNeeded >= LastMatched and LevelNeeded <= RawEquippedItems.Level then
+                    LastMatched = LevelNeeded
+                    DifficultyToDo = Difficulty
+                    DungeonToDo = ImageButton.Name
+                end
+            end
+        end
+    end
+
+    return DungeonToDo, DifficultyToDo
 end
 
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
@@ -191,7 +221,7 @@ ReturnTable.InventoryManager.GetEquippedJewelry = function()
 end
 
 ReturnTable.InventoryManager.GetBestWeapon = function()
-    local Last = 0
+    local LastMatched = 0
     local BetterWeaponItem
 
     local EquippedWeapon = ReturnTable.InventoryManager.GetEquippedWeapon() or {
@@ -202,7 +232,7 @@ ReturnTable.InventoryManager.GetBestWeapon = function()
         local ItemPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
 
         if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon.ItemStats[AutoEquipBest.PreferedStat] then
-            Last = ItemPreferedStat
+            LastMatched = ItemPreferedStat
             BetterWeaponItem = Item
         end
     end
@@ -217,7 +247,7 @@ ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
         Helmet,
         Armor,
     }
-    local Last = {
+    local LastMatched = {
         Legs = 0,
         Helmet = 0,
         Armor = 0
@@ -228,10 +258,10 @@ ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
             local ArmorType = Item.FullItemInfo.BodyPart
             local ArmorPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
 
-            if ArmorPreferedStat > Last[ArmorType] then
+            if ArmorPreferedStat > LastMatched[ArmorType] then
                 for Index, ArmorEquipped in next, EquippedArmor do
                     if ArmorType == ArmorEquipped.FullItemInfo.BodyPart and ArmorPreferedStat > ArmorEquipped.ItemStats[AutoEquipBest.PreferedStat] then
-                        Last[ArmorType] = ArmorPreferedStat
+                        LastMatched[ArmorType] = ArmorPreferedStat
                         ArmorToEquip[ArmorType] = Item
                     end
                 end
@@ -246,17 +276,17 @@ end
 ReturnTable.InventoryManager.GetBestJewelry = function(WhichJewelry)
     local EquippedJewelry = ReturnTable.InventoryManager.GetEquippedJewelry()
     local JewelryToEquip
-    local Last = 0
+    local LastMatched = 0
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         if Item.FullItemInfo.type == "Jewelry" then
             local JewleryPreferedStat = Item.ItemStats[AutoEquipBest.PreferedStat]
 
-            if JewleryPreferedStat and JewleryPreferedStat > Last  then
+            if JewleryPreferedStat and JewleryPreferedStat > LastMatched  then
                 for Index, JewleryEquipped in next, EquippedJewelry do
                     if JewleryPreferedStat > JewleryEquipped.ItemStats[AutoEquipBest.PreferedStat] then
                         JewelryToEquip = Item
-                        Last = JewleryPreferedStat
+                        LastMatched = JewleryPreferedStat
                     end
                 end
             end
