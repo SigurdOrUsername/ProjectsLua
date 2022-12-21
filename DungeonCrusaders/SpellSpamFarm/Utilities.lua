@@ -188,9 +188,9 @@ end
 
 ReturnTable.InventoryManager.GetEquippedArmor = function()
     local EquippedArmor = {
-        ["Legs"] = {ItemStats = {[ReturnTable.ExploitEnv.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Legs"}},
-        ["Helmet"] = {ItemStats = {[ReturnTable.ExploitEnv.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Helmet"}},
-        ["Armor"] = {ItemStats = {[ReturnTable.ExploitEnv.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Armor"}}
+        ["Legs"] = {ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Legs"}},
+        ["Helmet"] = {ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Helmet"}},
+        ["Armor"] = {ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}, FullItemInfo = {BodyPart = "Armor"}}
     }
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("EquippedItems") do
@@ -206,14 +206,14 @@ ReturnTable.InventoryManager.GetEquippedJewelry = function()
     local EquippedJewelry = {}
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("EquippedItems") do
-        if Item.FullItemInfo.type == "Jewelry" and Item.ItemStats[ReturnTable.ExploitEnv.PreferedStat] then
+        if Item.FullItemInfo.type == "Jewelry" and Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
             EquippedJewelry[#EquippedJewelry + 1] = Item
         end
     end
 
     --If there's less than 1 jewlery items equipped, add template items coresponding to the amount of items not equipped so code wont break
     if #EquippedJewelry == 0 then
-        EquippedJewelry[1] = {ItemStats = {[ReturnTable.ExploitEnv.PreferedStat] = 0}}
+        EquippedJewelry[1] = {ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}}
     end
 
     return EquippedJewelry
@@ -224,13 +224,13 @@ ReturnTable.InventoryManager.GetBestWeapon = function()
     local BetterWeaponItem
 
     local EquippedWeapon = ReturnTable.InventoryManager.GetEquippedWeapon() or {
-        ItemStats = {[ReturnTable.ExploitEnv.PreferedStat] = 0}
+        ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}
     }
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
-        local ItemPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.PreferedStat]
+        local ItemPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat]
 
-        if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon.ItemStats[ReturnTable.ExploitEnv.PreferedStat] then
+        if Item.FullItemInfo.type == "Weapon" and ItemPreferedStat and ItemPreferedStat > Last and ItemPreferedStat > EquippedWeapon.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
             LastMatched = ItemPreferedStat
             BetterWeaponItem = Item
         end
@@ -255,11 +255,11 @@ ReturnTable.InventoryManager.GetBestArmor = function(WhichArmor)
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         if Item.FullItemInfo.BodyPart == "Legs" or Item.FullItemInfo.BodyPart == "Helmet" or Item.FullItemInfo.BodyPart == "Armor" then
             local ArmorType = Item.FullItemInfo.BodyPart
-            local ArmorPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.PreferedStat]
+            local ArmorPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat]
 
             if ArmorPreferedStat > LastMatched[ArmorType] then
                 for Index, ArmorEquipped in next, EquippedArmor do
-                    if ArmorType == ArmorEquipped.FullItemInfo.BodyPart and ArmorPreferedStat > ArmorEquipped.ItemStats[ReturnTable.ExploitEnv.PreferedStat] then
+                    if ArmorType == ArmorEquipped.FullItemInfo.BodyPart and ArmorPreferedStat > ArmorEquipped.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
                         LastMatched[ArmorType] = ArmorPreferedStat
                         ArmorToEquip[ArmorType] = Item
                     end
@@ -279,11 +279,11 @@ ReturnTable.InventoryManager.GetBestJewelry = function(WhichJewelry)
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         if Item.FullItemInfo.type == "Jewelry" then
-            local JewleryPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.PreferedStat]
+            local JewleryPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat]
 
             if JewleryPreferedStat and JewleryPreferedStat > LastMatched  then
                 for Index, JewleryEquipped in next, EquippedJewelry do
-                    if JewleryPreferedStat > JewleryEquipped.ItemStats[ReturnTable.ExploitEnv.PreferedStat] then
+                    if JewleryPreferedStat > JewleryEquipped.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] then
                         JewelryToEquip = Item
                         LastMatched = JewleryPreferedStat
                     end
