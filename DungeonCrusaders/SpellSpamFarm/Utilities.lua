@@ -1,4 +1,4 @@
-print("server: 1.0.7")
+print("server: 1.0.75")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -307,35 +307,30 @@ ReturnTable.InventoryManager.HasTriplicatedSpell = function(Spell, CurItemsToSel
 
     --First go through current items to sell
     for Index, Item in next, CurItemsToSell do
-        if Item.FullItemInfo.type == "Spell" and Item.FullItemInfo.Name == Spell.FullItemInfo.Name then
-
-            --Remove the spells from our inventory that we are going to sell to "replicate" selling without actually having to sell them
-            for InvIndex, InvItem in next, Inventory do
-                if InvItem.FullItemInfo.Name == Spell.FullItemInfo.Name then
-                    warn(Inventory[InvIndex])
-                    Inventory[InvIndex] = nil
-                    warn(Inventory[InvIndex])
-                end
+        --Remove the items from our inventory that we are going to sell to "replicate" selling without actually having to sell the item
+        for InvIndex, InvItem in next, Inventory do
+            if Item.FullItemInfo.Name == InvItem.FullItemInfo.Name then
+                Inventory[InvIndex] = nil
+                break
             end
-
         end
     end
 
-    --If cur items to sell does not have triplicated, check inv for triplicated
+    --After removing items thats going to be selled, check if the spell is still triplicated
     for Index, Item in next, Inventory do
         if Item.FullItemInfo.type == "Spell" and Item.FullItemInfo.Name == Spell.FullItemInfo.Name then
+            AmountSpellsFound = AmountSpellsFound + 1
+
             if AmountSpellsFound >= 4 then
                 return true
             end
-
-            AmountSpellsFound = AmountSpellsFound + 1
         end
     end
 
     return false
 end
 
-ReturnTable.InventoryManager.CanItemBeSold = function(Item, CurItemsToSell)
+ReturnTable.InventoryManager.CanItemBeSold = function(Item, ItemsToSell)
     local ReturnValue = true
 
     if table.find(ReturnTable.ExploitEnv.Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(ReturnTable.ExploitEnv.Autosell.ItemsToKeep, Item.FullItemInfo.Name) then
@@ -345,7 +340,7 @@ ReturnTable.InventoryManager.CanItemBeSold = function(Item, CurItemsToSell)
         return false
     end
     if ReturnTable.ExploitEnv.Autosell.SellTriplicatedSpells and Item.FullItemInfo.type == "Spell" then
-        return not ReturnTable.InventoryManager.HasTriplicatedSpell(Item, CurItemsToSell)
+        return ReturnTable.InventoryManager.HasTriplicatedSpell(Item, ItemsToSell)
     end
     if ReturnTable.ExploitEnv.Autosell.KeepAllJewelery and Item.FullItemInfo.type == "Jewelry" then
         return false
@@ -359,7 +354,7 @@ ReturnTable.InventoryManager.GetItemsToSell = function()
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems", "Inv") do
         if ReturnTable.InventoryManager.CanItemBeSold(Item, ItemsToSell) then
-            print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, ReturnTable.InventoryManager.CanItemBeSold(Item))
+            print(Item.FullItemInfo.Name, Item.ItemStats.Tier, Item.ItemStats.Slot, ReturnTable.InventoryManager.CanItemBeSold(Item, ItemsToSell))
             table.insert(ItemsToSell, Item)
         end
     end
