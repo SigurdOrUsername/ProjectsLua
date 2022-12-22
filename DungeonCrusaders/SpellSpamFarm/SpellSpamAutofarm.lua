@@ -1,15 +1,15 @@
-print("client: 1.0.4")
+print("client: 1.0.5")
 
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --//Auto equips [Armor, Weapon, Jewelry]
-    PreferedStat = "MagicDamage" --//[PhysicalDamage, MagicDamage, Health]
+    PreferedStat = "PhysicalDamage" --//[PhysicalDamage, MagicDamage, Health]
 }
 
 getgenv().Autosell = {  
-    DoAutoSell = false,
+    DoAutoSell = true,
 
     SellTriplicatedSpells = true, --//Will keep all spells til you have 3 of them, if you get more after you have 3, script will sell it [KeepAllSpells will overrule this setting]
-    KeepAllSpells = true, --//Wont sell any spells if true [This keeps all spells, regardless of name and rarity]
+    KeepAllSpells = false, --//Wont sell any spells if true [This keeps all spells, regardless of name and rarity]
     KeepAllJewelery = false, --//Wont sell any jewelry if true [This keeps all jewelry, regardless of name and rarity]
 
     RaritiesToKeep = {
@@ -30,9 +30,9 @@ getgenv().ExtraDungeonInfo = {
 
     --These functions exist so that the roblox error code 286 whatever thingy is minigated (if you sever hop too much, you might get soft ip-banned from roblox for a couple of hours)
 
-    WaitTimeBeforeStartingDungeon = 80, --//If you want delay before the dungeon stats
+    WaitTimeBeforeStartingDungeon = 60, --//If you want delay before the dungeon stats
     WaitTimeBeforeLeavingDungeon = 60, --//If you want delay before leaving the dungeon
-    TakeBreakAfterXRuns = math.random(5, 15), --//This will wait in the loby for 5 minutes when x runs have been reached
+    TakeBreakAfterXRuns = 10, --//This will wait in the loby for 5 minutes when x runs have been completed
 
     --For offsets when autofarming
     Cords = {
@@ -46,9 +46,9 @@ getgenv().DungeonInfo = {
     PartyInfo = {
 		Difficulty = "Auto", --//Difficult level [Novice, Advanced, Chaos] / Auto [If you want the script to select the dungeon for you]
 		Hardcore = false, --//Need to be lvl 11+
-		Extreme = false, --//Need to be lvl 12+
+		Extreme = true, --//Need to be lvl 12+
 		Private = true,
-		Dungeon = "Auto" --//Dungeon name / Auto [If you want the script to select difficulty for you]
+		Dungeon = "Auto" --//Dungeon name / Auto [If you want the script to select the difficulty for you]
 	}
 }
 
@@ -62,8 +62,13 @@ getgenv().MultifarmInfo = {
 }
 
 getgenv().Webhook = {
-    SendWebooks = true,
+    SendWebhooks = true,
     Url = "",
+
+    WhichWebhooksToSend = {
+        SendWebhookWhenDungeonCompleted = true,
+        SendWebhookWhenScriptTakingABreak = true,
+    },
 
     UserId = "everyone", --Which person it will ping. UserId/everyone/here/whatnot
     PingForRarity = { --Will send you a ping if any of these rarities are dropped
@@ -116,7 +121,14 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
     --Taking a break after X runs
     local StorageFile = tonumber(LobbyManager.ReadWriteStorageFile())
     if StorageFile >= ExploitEnv.ExtraDungeonInfo.TakeBreakAfterXRuns then
-        warn("taking a break")
+        if ExploitEnv.Webhook.SendWebhooks and ExploitEnv.Webhook.WhichWebhooksToSend.SendWebhookWhenScriptTakingABreak then
+            DungeonManager.SendWebook({
+                Title = "Taking a break for 5 minutes",
+                Description = "Script completed " .. tostring(StorageFile) .. " runs",
+                FooterText = "User local time: " .. os.date()
+            })
+        end
+
         writefile("StorageFile.txt", "0")
         task.wait(300)
     end
@@ -177,7 +189,7 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
 
     --Wait before dungeon starts
     if ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon > 0 then
-        task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/2, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
+        task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/1.5, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
     end
 
     --If the user wants the script to select the best dungeon / difficulty
@@ -229,10 +241,10 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
         PartyEvents.Request:InvokeServer("Create", ExploitEnv.DungeonInfo)
     end
 
-    PartyEvents.Comm:FireServer("Start")
+    --PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     while Player:WaitForChild("PlayerGui", math.huge).GUI.GameInfo.MobCount.Text == "Start Pending..." do
-        Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame * CFrame.new(0, 2, 0)
+        Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame * CFrame.new(2.5, 0, 0)
         task.wait()
     end
 
@@ -272,7 +284,7 @@ else --Not in lobby
     coroutine.wrap(function() --In a coroutine to bypass waiting for boss to be dead, incase it dies when other accounts are waiting [Multifarm]
         Player.PlayerGui.EndGUI:GetPropertyChangedSignal("Enabled"):Connect(function()
             --Webhook stuff
-            if ExploitEnv.Webhook.SendWebooks then
+            if ExploitEnv.Webhook.SendWebhooks and ExploitEnv.Webhook.WhichWebhooksToSend.SendWebhookWhenDungeonCompleted then
                 local AllFeilds = {}
                 local PingContent = ""
 
@@ -296,8 +308,13 @@ else --Not in lobby
                     end
                 end
 
+                local CompletedDungeon = ExploitEnv.DungeonInfo.PartyInfo.Dungeon
+                if CompletedDungeon == "Auto" then
+                    CompletedDungeon = LobbyManager.GetBestDungeonAndDifficulty()
+                end
+
                 DungeonManager.SendWebook({
-                    Title = "Completed dungeon idk lol [" .. Player.PlayerGui.GUI.HUD.Mode.Text .. ", " .. Player.PlayerGui.GUI.HUD.Mode.Text .. "]",
+                    Title = "Completed dungeon: " .. CompletedDungeon .. " [Mode: " .. Player.PlayerGui.GUI.GameInfo.Mode.Mode.Text .. ", Difficulty: " .. Player.PlayerGui.GUI.GameInfo.Difficulty.Text .. "]",
                     Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(PlayerLevel) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``",
                     Content = PingContent,
                     Feilds = AllFeilds,
@@ -342,7 +359,7 @@ else --Not in lobby
             HasWaited = true
 
             if ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon > 0 then
-                task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon/2, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon))
+                task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon/1.5, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon))
             end
         end
 
