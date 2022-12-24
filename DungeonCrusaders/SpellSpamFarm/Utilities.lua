@@ -1,4 +1,4 @@
-print("server: 1.0.75")
+print("server: 1.0.8")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -31,6 +31,20 @@ ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     return StorageFile
 end
 
+ReturnTable.LobbyManager.ChildrenHasSameValues = function(Table, FirstValue)
+    local LastMatched = Table[FirstValue]
+
+    for Index, Value in next, Table do
+        if Value ~= LastMatched then
+            return false
+        else
+            LastMatched = Value
+        end
+    end
+    
+    return true, LastMatched
+end
+
 ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
     local AllLevelReqs = require(ReplicatedStorage.Core.CoreInfo.PartyLevels.RequiredLevels)
 
@@ -45,18 +59,28 @@ ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
 
     for Index, Dungeon in next, Player.PlayerGui.GUI.Party.CreateFrame.Dungeons:GetChildren() do
         if Dungeon:IsA("Frame") then
-            local ImageButton = Dungeon:FindFirstChildWhichIsA("ImageButton")
-            local LevelReqs = AllLevelReqs[ImageButton.Name]
+            local DungeonName = Dungeon:FindFirstChildWhichIsA("ImageButton")
+            local LevelReqs = AllLevelReqs[DungeonName.Name]
 
             LevelReqs.Normal = nil
             LevelReqs.Hardcore = nil
             LevelReqs.Extreme = nil
 
-            for Difficulty, LevelNeeded in next, LevelReqs do
-                if LevelNeeded >= LastMatched and LevelNeeded <= PlayerLevel then
-                    LastMatched = LevelNeeded
-                    BestDifficulty = Difficulty
-                    BestDungeon = ImageButton.Name
+            --Some dungeons have the same level for every difficulty
+            local HasSameValues, LevelNeeded = ReturnTable.LobbyManager.ChildrenHasSameValues(LevelReqs, "Novice")
+            if HasSameValues and LevelNeeded >= LastMatched and LevelNeeded <= PlayerLevel then
+                LastMatched = LevelNeeded
+                BestDifficulty = "Chaos"
+                BestDungeon = DungeonName.Name
+            end
+
+            if not HasSameValues then
+                for Difficulty, LevelNeeded in next, LevelReqs do
+                    if LevelNeeded >= LastMatched and LevelNeeded <= PlayerLevel then
+                        LastMatched = LevelNeeded
+                        BestDifficulty = Difficulty
+                        BestDungeon = DungeonName.Name
+                    end
                 end
             end
         end
