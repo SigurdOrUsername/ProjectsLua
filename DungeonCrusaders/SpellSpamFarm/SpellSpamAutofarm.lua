@@ -1,11 +1,11 @@
-print("client: 1.0.5")
+print("client: 1.0.6")
 
 getgenv().AutoEquipBest = {
     DoAutoEquipBest = true, --//Auto equips [Armor, Weapon, Jewelry]
     PreferedStat = "PhysicalDamage" --//[PhysicalDamage, MagicDamage, Health]
 }
 
-getgenv().Autosell = {  
+getgenv().Autosell = {
     DoAutoSell = true,
 
     SellTriplicatedSpells = true, --//Will keep all spells til you have 3 of them, if you get more after you have 3, script will sell it [KeepAllSpells will overrule this setting]
@@ -30,7 +30,8 @@ getgenv().ExtraDungeonInfo = {
 
     --These functions exist so that the roblox error code 286 whatever thingy is minigated (if you sever hop too much, you might get soft ip-banned from roblox for a couple of hours)
 
-    WaitTimeBeforeStartingDungeon = 60, --//If you want delay before the dungeon stats
+    RejoinIfKicked = true, --//If you disconnect, get kicked, anything like that, the script will auto rejoin the game for you
+    WaitTimeBeforeStartingDungeon = 40, --//If you want delay before the dungeon stats
     WaitTimeBeforeLeavingDungeon = 60, --//If you want delay before leaving the dungeon
     TakeBreakAfterXRuns = 10, --//This will wait in the loby for 5 minutes when x runs have been completed
 
@@ -43,19 +44,21 @@ getgenv().ExtraDungeonInfo = {
 }
 
 getgenv().DungeonInfo = {
+    AutoSelectDungeonAndDifficulty = true, --//Enable if you want the script to auto select the dungeon and difficulty
+
     PartyInfo = {
-		Difficulty = "Auto", --//Difficult level [Novice, Advanced, Chaos] / Auto [If you want the script to select the dungeon for you]
+		Difficulty = "Novice", --//Difficult level [Novice, Advanced, Chaos]
 		Hardcore = false, --//Need to be lvl 11+
-		Extreme = true, --//Need to be lvl 12+
-		Private = true,
-		Dungeon = "Auto" --//Dungeon name / Auto [If you want the script to select the difficulty for you]
+		Extreme = false, --//Need to be lvl 12+
+		Private = false,
+		Dungeon = "Snow" --//Dungeon name
 	}
 }
 
 getgenv().MultifarmInfo = {
     DoMultiFarm = false,
 
-    Host = "Wanwood1960907364092",
+    Host = "DungeonCrusadersPro",
     Accounts = {
         "TestingTesting12052",
     }
@@ -110,11 +113,11 @@ local InventoryManager = Utilities.InventoryManager
 local DungeonManager = Utilities.DungeonManager
 
 --If the user gets kicked, send them back to the lobby
---[[
 CoreGui.RobloxPromptGui.promptOverlay.DescendantAdded:Connect(function(Child)
-    TeleportService:Teleport("6998582502")
+    if ExploitEnv.ExtraDungeonInfo.RejoinIfKicked then
+        TeleportService:Teleport("6998582502")
+    end
 end)
-]]
 
 --In lobby
 if ReplicatedFirst:FindFirstChild("IsLobby") then
@@ -189,11 +192,11 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
 
     --Wait before dungeon starts
     if ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon > 0 then
-        task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon/1.5, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon))
+        task.wait(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeStartingDungeon)
     end
 
     --If the user wants the script to select the best dungeon / difficulty
-    if ExploitEnv.DungeonInfo.PartyInfo.Difficult == "Auto" or ExploitEnv.DungeonInfo.PartyInfo.Dungeon == "Auto" then
+    if ExploitEnv.DungeonInfo.AutoSelectDungeonAndDifficulty then
         local BestDungeon, BestDifficulty = LobbyManager.GetBestDungeonAndDifficulty()
 
         --Replacing Dungeon = "Auto" and Difficulty = "Auto" in the DungeonInfo table
@@ -202,9 +205,11 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
     end
 
     --Multi farm
+    local TempDungeonInfo = {PartyInfo = ExploitEnv.DungeonInfo.PartyInfo} --Making a temp table for dungeon info so that the right remote arguments are passed for creating the dungeon
+
     if ExploitEnv.MultifarmInfo.DoMultiFarm then
         if Player.Name == ExploitEnv.MultifarmInfo.Host then
-            PartyEvents.Request:InvokeServer("Create", ExploitEnv.DungeonInfo)
+            PartyEvents.Request:InvokeServer("Create", TempDungeonInfo)
 
             while not LobbyManager.AllUsersHaveJoined() do
                 for Index, Plr in next, ExploitEnv.MultifarmInfo.Accounts do
@@ -238,10 +243,10 @@ if ReplicatedFirst:FindFirstChild("IsLobby") then
             end
         end
     else
-        PartyEvents.Request:InvokeServer("Create", ExploitEnv.DungeonInfo)
+        PartyEvents.Request:InvokeServer("Create", TempDungeonInfo)
     end
 
-    --PartyEvents.Comm:FireServer("Start")
+    PartyEvents.Comm:FireServer("Start")
 else --Not in lobby
     while Player:WaitForChild("PlayerGui", math.huge).GUI.GameInfo.MobCount.Text == "Start Pending..." do
         Player.Character.HumanoidRootPart.CFrame = workspace.DungeonConfig.Podium.Listener.CFrame * CFrame.new(2.5, 0, 0)
@@ -281,72 +286,73 @@ else --Not in lobby
     end)
     
     --Webhook and leaving the game
-    coroutine.wrap(function() --In a coroutine to bypass waiting for boss to be dead, incase it dies when other accounts are waiting [Multifarm]
-        Player.PlayerGui.EndGUI:GetPropertyChangedSignal("Enabled"):Connect(function()
-            --Webhook stuff
-            if ExploitEnv.Webhook.SendWebhooks and ExploitEnv.Webhook.WhichWebhooksToSend.SendWebhookWhenDungeonCompleted then
-                local AllFeilds = {}
-                local PingContent = ""
+    Player.PlayerGui.EndGUI:GetPropertyChangedSignal("Enabled"):Connect(function()
+        --Webhook stuff
+        local StorageFile = tonumber(LobbyManager.ReadWriteStorageFile())
+        writefile("StorageFile.txt", tostring(StorageFile + 1))
 
-                local PlayerLevel = ServerNetwork:InvokeServer("DataFunctions", {
-                    Function = "RetrieveLevelFromPlayer",
-                    Player = Player
-                })
+        if ExploitEnv.Webhook.SendWebhooks and ExploitEnv.Webhook.WhichWebhooksToSend.SendWebhookWhenDungeonCompleted then
+            local AllFeilds = {}
+            local PingContent = ""
 
-                for Index, GotItem in next, InventoryManager.GetInventory("InvItems") do
-                    if Index > #OldInventory then
+            local PlayerLevel = ServerNetwork:InvokeServer("DataFunctions", {
+                Function = "RetrieveLevelFromPlayer",
+                Player = Player
+            })
 
-                        if table.find(ExploitEnv.Webhook.PingForRarity, GotItem.ItemStats.Tier) then
-                            PingContent = "<@" .. ExploitEnv.Webhook.UserId .. ">"
-                        end
+            --Adding fields of every item the user got after the dungeon was completed
+            for Index, GotItem in next, InventoryManager.GetInventory("InvItems") do
+                if Index > #OldInventory then
 
-                        table.insert(AllFeilds, {
-                            name = GotItem.FullItemInfo.Name,
-                            value = "```Tier: " .. tostring(GotItem.ItemStats.Tier) .. "\nMagic Damage: " .. tostring(GotItem.ItemStats.MagicDamage) .. "\nPhysical Damage: " .. tostring(GotItem.ItemStats.PhysicalDamage) .. "\nHealth: " .. tostring(GotItem.ItemStats.Health) .. "\nLvl Requirement: " .. tostring(GotItem.ItemStats.Requirement) .. "\nMax Upgrades: " .. tostring(GotItem.ItemStats.MaxUpgrades) .. "```",
-                            inline = true
-                        })
+                    if table.find(ExploitEnv.Webhook.PingForRarity, GotItem.ItemStats.Tier) then
+                        PingContent = "<@" .. ExploitEnv.Webhook.UserId .. ">"
                     end
-                end
 
-                local CompletedDungeon = ExploitEnv.DungeonInfo.PartyInfo.Dungeon
-                if CompletedDungeon == "Auto" then
-                    CompletedDungeon = LobbyManager.GetBestDungeonAndDifficulty()
+                    table.insert(AllFeilds, {
+                        name = GotItem.FullItemInfo.Name,
+                        value = "```Tier: " .. tostring(GotItem.ItemStats.Tier) .. "\nMagic Damage: " .. tostring(GotItem.ItemStats.MagicDamage) .. "\nPhysical Damage: " .. tostring(GotItem.ItemStats.PhysicalDamage) .. "\nHealth: " .. tostring(GotItem.ItemStats.Health) .. "\nLvl Requirement: " .. tostring(GotItem.ItemStats.Requirement) .. "\nMax Upgrades: " .. tostring(GotItem.ItemStats.MaxUpgrades) .. "```",
+                        inline = true
+                    })
                 end
-
-                DungeonManager.SendWebook({
-                    Title = "Completed dungeon: " .. CompletedDungeon .. " [Mode: " .. Player.PlayerGui.GUI.GameInfo.Mode.Mode.Text .. ", Difficulty: " .. Player.PlayerGui.GUI.GameInfo.Difficulty.Text .. "]",
-                    Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(PlayerLevel) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``",
-                    Content = PingContent,
-                    Feilds = AllFeilds,
-                    FooterText = "Completed with a time of: " .. Player.PlayerGui.GUI.Top.Timer.Text .. " (Took " .. os.time() - TimeAtStartOfDungeon .. " sec), \nUser local time: " .. os.date()
-                })
             end
 
-            local StorageFile = tonumber(LobbyManager.ReadWriteStorageFile())
-            writefile("StorageFile.txt", tostring(StorageFile + 1))
+            local CompletedDungeon = ExploitEnv.DungeonInfo.PartyInfo.Dungeon
+            
+            --If the user has autoselect dungeon and difficulty, than the current dungeon is the best dungeon possible
+            if ExploitEnv.DungeonInfo.AutoSelectDungeonAndDifficulty then
+                CompletedDungeon = LobbyManager.GetBestDungeonAndDifficulty()
+            end
 
-            --Teleporting back to lobby
-            if ExploitEnv.ExtraDungeonInfo.RepeatDungeon then
-                PartyEvents.DungeonRequest:InvokeServer("TeleportPartyDungeon")
-            else
-                if ExploitEnv.MultifarmInfo.DoMultiFarm then
+            DungeonManager.SendWebook({
+                Title = "Completed dungeon: " .. CompletedDungeon .. " [Mode: " .. Player.PlayerGui.GUI.GameInfo.Mode.Mode.Text .. ", Difficulty: " .. Player.PlayerGui.GUI.GameInfo.Difficulty.Text .. "]",
+                Description = "Player: ``" .. Player.Name .. "``\nLvl: ``" .. tostring(PlayerLevel) .. "``\nEXP: ``" .. Player.PlayerGui.GUI.HUD.EXP.Amount.Text .. "``\n#Runs finished: ``" .. tostring(StorageFile + 1) .. "``",
+                Content = PingContent,
+                Feilds = AllFeilds,
+                FooterText = "Completed with a time of: " .. Player.PlayerGui.GUI.Top.Timer.Text .. " (Took " .. os.time() - TimeAtStartOfDungeon .. " sec), \nUser local time: " .. os.date()
+            })
+        end
 
-                    --Leaving dungeon as multi farm
-                    if Player.Name == ExploitEnv.MultifarmInfo.Host then
-                        PartyEvents.DungeonRequest:InvokeServer("TeleportPartyLobby")
-                    else
-                        while task.wait() do
-                            warn("joining")
-                            PartyEvents.DungeonComm:FireServer("JoinDungeonParty")
-                        end
-                    end
+        --Teleporting back to lobby
+        if ExploitEnv.ExtraDungeonInfo.RepeatDungeon then
+            PartyEvents.DungeonRequest:InvokeServer("TeleportPartyDungeon")
+        else
+            if ExploitEnv.MultifarmInfo.DoMultiFarm then
 
+                --Leaving dungeon as multi farm
+                if Player.Name == ExploitEnv.MultifarmInfo.Host then
+                    PartyEvents.DungeonRequest:InvokeServer("TeleportPartyLobby")
                 else
-                    PartyEvents.DungeonComm:FireServer("TeleportAlone")
+                    while task.wait() do
+                        PartyEvents.DungeonComm:FireServer("JoinDungeonParty")
+                    end
                 end
+
+            else
+                PartyEvents.DungeonComm:FireServer("TeleportAlone")
+                --game:Shutdown()
             end
-        end)
-    end)()
+        end
+    end)
 
     local CurStage = 1
     local HasWaited = false
@@ -359,7 +365,7 @@ else --Not in lobby
             HasWaited = true
 
             if ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon > 0 then
-                task.wait(math.random(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon/1.5, ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon))
+                task.wait(ExploitEnv.ExtraDungeonInfo.WaitTimeBeforeLeavingDungeon)
             end
         end
 
