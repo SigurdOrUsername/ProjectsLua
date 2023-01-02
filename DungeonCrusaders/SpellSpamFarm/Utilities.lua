@@ -404,7 +404,7 @@ ReturnTable.DungeonManager.SendWebook = function(InfoTable)
     }
 
     Request({
-        Url = ExploitEnv.Webhook.Url,
+        Url = ReturnTable.ExploitEnv.Webhook.Url,
         Body = HttpService:JSONEncode(Data),
         Method = "POST",
         Headers = {
