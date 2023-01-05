@@ -1,4 +1,4 @@
-print("server: 1.0.9")
+print("server: 1.1.0")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -58,7 +58,7 @@ ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
     local LastMatched = 0
 
     for Index, Dungeon in next, Player.PlayerGui.GUI.Party.CreateFrame.Dungeons:GetChildren() do
-        if Dungeon:IsA("Frame") then
+        if Dungeon:IsA("Frame") and Dungeon.Visible then
             local DungeonName = Dungeon:FindFirstChildWhichIsA("ImageButton")
             local LevelReqs = AllLevelReqs[DungeonName.Name]
 
