@@ -11,7 +11,6 @@ local FluxLib = Instance.new("ScreenGui")
 FluxLib.Name = "FluxLib"
 FluxLib.Parent = game.CoreGui
 FluxLib.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-syn.protect_gui(FluxLib)
 
 coroutine.wrap(
 	function()
@@ -2749,4 +2748,6 @@ function Flux:Window(text, bottom,mainclr,toclose)
 	end
 	return Tabs
 end
+
+syn.protect_gui(FluxLib)
 return Flux
