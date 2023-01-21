@@ -1,4 +1,4 @@
-print("server: 1.1.0")
+print("server: 1.1.05")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -173,7 +173,7 @@ ReturnTable.InventoryManager.GetInventory = function(Type)
                     for NonArmorName, NonArmorItem in next, ItemArea do --This should be all of the items, apart for armor items
                         if typeof(NonArmorItem) == "table" then
 
-                            if table.find(NonArmorItem, "Requirement") then --If not armor item, insert into inventory
+                            if table.find["Requirement"] then --If not armor item, insert into inventory
                                 table.insert(NewEquippedItems, ReturnTable.InventoryManager.FormatNewItem(NonArmorItem, NonArmorName))
                             else
                                 for ArmorName, ArmorItem in next, NonArmorItem do --If armor item, get the actual items
