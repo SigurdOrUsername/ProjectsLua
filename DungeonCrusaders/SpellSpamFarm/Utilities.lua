@@ -1,9 +1,10 @@
-print("server: 1.1.055")
+print("server: 2.0.0")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork.ServerNetwork
+local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork
+local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
 
@@ -377,6 +378,7 @@ ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
         ServerNetwork.Parent.MagicFunction:InvokeServer("Q", "Spell")
         ServerNetwork.Parent.MagicFunction:InvokeServer("E", "Spell")
+        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
     end)
 end
 
