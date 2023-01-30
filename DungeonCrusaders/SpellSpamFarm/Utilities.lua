@@ -1,4 +1,4 @@
-print("server: 2.0.1")
+print("server: 2.0.2")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -7,7 +7,6 @@ local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwor
 local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
-
 local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 
 local ReturnTable = {}
@@ -380,17 +379,39 @@ ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
         InputHandlerENV.ActivateQ()
         InputHandlerENV.ActivateE()
-        --ServerNetwork.Parent.MagicFunction:InvokeServer("Q", "Spell")
-        --ServerNetwork.Parent.MagicFunction:InvokeServer("E", "Spell")
         ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
     end)
 end
 
-ReturnTable.DungeonManager.DestroyIfSpellCooldown = function(Child)
-    if Child.Name == "Q" or Child.Name == "E" then
-        task.wait()
-        Child:Destroy()
+ReturnTable.DungeonManager.GetPrimaryPart = function(Mob)
+    return Mob.PrimaryPart or Mob:FindFirstChild("HumanoidRootPart") or Mob:FindFirstChild("Hitbox")
+end
+
+local WhitelistedMobParts = {
+    "DisplayName",
+    "Animate",
+    "AnimSaves",
+    "Rotate"
+}
+
+ReturnTable.DungeonManager.IsARealMob = function(Mob)
+    for Index, Part in next, WhitelistedMobParts do
+        if Mob:FindFirstChild(Part) then
+            return true
+        end
     end
+end
+
+ReturnTable.DungeonManager.GetAllMobsInStage = function(StageObject)
+    local Mobs = {}
+
+    for Index, Mob in next, StageObject:GetChildren() do
+        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) and ReturnTable.DungeonManager.IsARealMob(Mob) then
+            table.insert(Mobs, Mob)
+        end
+    end
+
+    return Mobs
 end
 
 ReturnTable.DungeonManager.SendWebook = function(InfoTable)
