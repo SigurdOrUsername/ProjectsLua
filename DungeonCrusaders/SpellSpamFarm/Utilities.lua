@@ -1,4 +1,4 @@
-print("server: 2.0.2")
+print("server: 2.0.3")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -16,6 +16,8 @@ ReturnTable.ExploitEnv = getgenv()
 ReturnTable.LobbyManager = {}
 ReturnTable.InventoryManager = {}
 ReturnTable.DungeonManager = {}
+ReturnTable.DungeonManager.DodingManager = {}
+ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents = {}
 
 ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     local StorageFile
@@ -438,6 +440,39 @@ ReturnTable.DungeonManager.SendWebook = function(InfoTable)
             ["content-type"] = "application/json"
         }
     })
+end
+
+--Doding
+ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
+    task.wait(10)
+
+    DodingManager.StopTeleporting = true
+    local ObjectToGoTo = FillObject.FillColor == Color3.new(1, 0, 0) and workspace.Filter.Effects:FindFirstChild("Red") or FillObject.FillColor == Color3.new(0, 1, 0) and workspace.Filter.Effects:FindFirstChild("Green") or FillObject.FillColor == Color3.new(0, 0, 1) and workspace.Filter.Effects:FindFirstChild("Blue")
+    Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo:FindFirstChildWhichIsA("Part").CFrame
+    task.wait(0.5)
+    DodingManager.StopTeleporting = false
+end
+
+ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
+ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 45, 0)
+ReturnTable.DungeonManager.DodingManager.PrioritizedMob = {
+    "Golem",
+    "Eyeball"
+}
+
+ReturnTable.DungeonManager.DodingManager.GetBestMob = function(StageObject)
+    local ReturnMob
+
+    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+            ReturnMob = Mob
+            if table.find(ReturnTable.DungeonManager.DodingManager.PrioritizedMob, Mob.Name) then
+                return Mob
+            end
+        end
+    end
+
+    return ReturnMob
 end
 
 return ReturnTable
