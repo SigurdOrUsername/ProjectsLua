@@ -444,12 +444,23 @@ end
 
 --Doding
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
-    task.wait(10)
+    task.wait(9)
 
     DodingManager.StopTeleporting = true
-    local ObjectToGoTo = FillObject.FillColor == Color3.new(1, 0, 0) and workspace.Filter.Effects:FindFirstChild("Red") or FillObject.FillColor == Color3.new(0, 1, 0) and workspace.Filter.Effects:FindFirstChild("Green") or FillObject.FillColor == Color3.new(0, 0, 1) and workspace.Filter.Effects:FindFirstChild("Blue")
-    Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo:FindFirstChildWhichIsA("Part").CFrame
-    task.wait(0.5)
+    local ObjectToGoTo
+
+    if FillObject.FillColor.R == 1 then
+        ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Red")
+    end
+    if FillObject.FillColor.G == 1 then
+        ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Green")
+    end
+    if FillObject.FillColor.B == 1 then
+        ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Blue")
+    end
+
+    Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
+    task.wait(1)
     DodingManager.StopTeleporting = false
 end
 
