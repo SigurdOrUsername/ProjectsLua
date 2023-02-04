@@ -427,7 +427,7 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
         if StageObject:FindFirstChild(PrioritizedMob) then
-            print("found", PrioritizedMob)
+            print("found", StageObject:FindFirstChild(PrioritizedMob))
             return StageObject:FindFirstChild(PrioritizedMob)
         end
     end
