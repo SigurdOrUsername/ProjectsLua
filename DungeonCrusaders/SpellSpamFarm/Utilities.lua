@@ -422,14 +422,14 @@ ReturnTable.DungeonManager.PrioritizedMob = {
 }
 ReturnTable.DungeonManager.StagePrioritizing = {
     ["Stage4"] = function(StageObject)
-        warn("spesific stage")
-
         local GolemCount = 0
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-            if Mob.Name == "Golem" and GolemCount == 2 then
-                return Mob
-            end
             if Mob.Name == "Golem" then
+                if GolemCount == 3 then
+                    warn(Mob.Name, "returning")
+                    return Mob
+                end
+
                 GolemCount = GolemCount + 1
             end
         end
