@@ -422,7 +422,7 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Eyeball"
 }
 ReturnTable.DungeonManager.StagePrioritizing = {
-    ["Dark Atlantis"] {
+    ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
             local GolemCount = 0
 
