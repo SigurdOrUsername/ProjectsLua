@@ -439,6 +439,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
+    print(StageObject.Name)
     if ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name] then
         return ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name](StageObject)
     end
