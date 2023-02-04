@@ -426,7 +426,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
 
         local GolemCount = 0
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-            if Mob.Name == "Golem" and GolemCount == 1 then
+            if Mob.Name == "Golem" and GolemCount == 2 then
                 return Mob
             end
             if Mob.Name == "Golem" then
@@ -439,7 +439,6 @@ ReturnTable.DungeonManager.StagePrioritizing = {
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
-    print(StageObject.Name)
     if ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name] then
         return ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name](StageObject)
     end
