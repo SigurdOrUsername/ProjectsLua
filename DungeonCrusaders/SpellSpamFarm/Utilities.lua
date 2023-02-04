@@ -1,4 +1,4 @@
-print("server: 2.0.4")
+print("server: 2.0.5")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -428,7 +428,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "Golem" then
-                    if GolemCount == 1 then
+                    if GolemCount == 2 then
                         return Mob
                     end
 
@@ -445,7 +445,6 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
     if ReturnTable.DungeonManager.StagePrioritizing[GameName] and ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name] then
-        warn("Special stuff")
         return ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name](StageObject)
     end
 
