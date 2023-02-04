@@ -7,12 +7,13 @@ local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwor
 local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
+local MarketplaceService = game:GetService("MarketplaceService")
+local GameName = MarketplaceService:GetProductInfo(game.PlaceId)
 --local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 
 local ReturnTable = {}
 
 ReturnTable.ExploitEnv = getgenv()
-
 ReturnTable.LobbyManager = {}
 ReturnTable.InventoryManager = {}
 ReturnTable.DungeonManager = {}
@@ -421,28 +422,31 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Eyeball"
 }
 ReturnTable.DungeonManager.StagePrioritizing = {
-    ["Stage4"] = function(StageObject)
-        local GolemCount = 0
-        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-            if Mob.Name == "Golem" then
-                if GolemCount == 2 then
-                    warn(Mob.Name, "returning")
-                    return Mob
+    ["Dark Atlantis"] {
+        ["Stage4"] = function(StageObject)
+            local GolemCount = 0
+
+            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+                if Mob.Name == "Golem" then
+                    if GolemCount == 2 then
+                        warn(Mob.Name, "returning")
+                        return Mob
+                    end
+
+                    GolemCount = GolemCount + 1
                 end
-
-                GolemCount = GolemCount + 1
             end
-        end
 
-        return StageObject:FindFirstChildWhichIsA("Model")
-    end
+            return StageObject:FindFirstChildWhichIsA("Model")
+        end
+    }
 }
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
-    if ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name] then
-        return ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name](StageObject)
+    if ReturnTable.DungeonManager.StagePrioritizing[GameName] and ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name] then
+        return ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name](StageObject)
     end
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
