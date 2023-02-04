@@ -433,6 +433,8 @@ ReturnTable.DungeonManager.StagePrioritizing = {
                 GolemCount = GolemCount + 1
             end
         end
+
+        return StageObject:FindFirstChildWhichIsA("Model")
     end
 }
 
