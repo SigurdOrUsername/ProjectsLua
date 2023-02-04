@@ -7,7 +7,7 @@ local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwor
 local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
-local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
+--local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 
 local ReturnTable = {}
 
@@ -379,8 +379,8 @@ end
 
 ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
-        InputHandlerENV.ActivateQ()
-        InputHandlerENV.ActivateE()
+        ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
+        ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
         ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
     end)
 end
@@ -467,7 +467,7 @@ ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 45, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
-    task.wait(9)
+    task.wait(10)
 
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = true
     local ObjectToGoTo
