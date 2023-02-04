@@ -433,6 +433,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
                         return Mob
                     end
 
+                    print(GolemCount)
                     GolemCount = GolemCount + 1
                 end
             end
@@ -446,6 +447,7 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
     if ReturnTable.DungeonManager.StagePrioritizing[GameName] and ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name] then
+        warn("Special stuff")
         return ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name](StageObject)
     end
 
