@@ -482,8 +482,10 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
         ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Blue")
     end
 
-    Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
-    task.wait(2)
+    if ObjectToGoTo then
+        Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
+        task.wait(2)
+    end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
 
