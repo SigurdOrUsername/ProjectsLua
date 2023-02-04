@@ -425,15 +425,16 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
-        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-            if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+        warn(PrioritizedMob)
+        if StageObject:FindFirstChild(PrioritizedMob) then
+            print("found")
+            return Mob
+        end
+    end
 
-                ReturnMob = Mob
-                if Mob.Name == PrioritizedMob then
-                    return Mob
-                end
-
-            end
+    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+            ReturnMob = Mob
         end
     end
 
