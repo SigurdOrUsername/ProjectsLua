@@ -429,7 +429,6 @@ ReturnTable.DungeonManager.StagePrioritizing = {
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "Golem" then
                     if GolemCount == 2 then
-                        warn(Mob.Name, "returning")
                         return Mob
                     end
 
