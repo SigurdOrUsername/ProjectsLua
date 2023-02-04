@@ -389,7 +389,7 @@ ReturnTable.DungeonManager.GetPrimaryPart = function(Mob)
     return Mob.PrimaryPart or Mob:FindFirstChild("HumanoidRootPart") or Mob:FindFirstChild("Hitbox")
 end
 
-local WhitelistedMobParts = {
+ReturnTable.DungeonManager.WhitelistedMobParts = {
     "DisplayName",
     "Animate",
     "AnimSaves",
@@ -397,7 +397,7 @@ local WhitelistedMobParts = {
 }
 
 ReturnTable.DungeonManager.IsARealMob = function(Mob)
-    for Index, Part in next, WhitelistedMobParts do
+    for Index, Part in next, ReturnTable.DungeonManager.WhitelistedMobParts do
         if Mob:FindFirstChild(Part) then
             return true
         end
@@ -414,6 +414,26 @@ ReturnTable.DungeonManager.GetAllMobsInStage = function(StageObject)
     end
 
     return Mobs
+end
+
+ReturnTable.DungeonManager.PrioritizedMob = {
+    "Golem",
+    "Eyeball"
+}
+
+ReturnTable.DungeonManager.GetBestMob = function(StageObject)
+    local ReturnMob
+
+    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+            ReturnMob = Mob
+            if table.find(ReturnTable.DungeonManager.PrioritizedMob, Mob.Name) then
+                return Mob
+            end
+        end
+    end
+
+    return ReturnMob
 end
 
 ReturnTable.DungeonManager.SendWebook = function(InfoTable)
@@ -443,10 +463,13 @@ ReturnTable.DungeonManager.SendWebook = function(InfoTable)
 end
 
 --Doding
+ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
+ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 45, 0)
+
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(9)
 
-    DodingManager.StopTeleporting = true
+    ReturnTable.DungeonManager.DodingManager.StopTeleporting = true
     local ObjectToGoTo
 
     if FillObject.FillColor.R == 1 then
@@ -461,29 +484,7 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
 
     Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
     task.wait(1)
-    DodingManager.StopTeleporting = false
-end
-
-ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
-ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 45, 0)
-ReturnTable.DungeonManager.DodingManager.PrioritizedMob = {
-    "Golem",
-    "Eyeball"
-}
-
-ReturnTable.DungeonManager.DodingManager.GetBestMob = function(StageObject)
-    local ReturnMob
-
-    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-            ReturnMob = Mob
-            if table.find(ReturnTable.DungeonManager.DodingManager.PrioritizedMob, Mob.Name) then
-                return Mob
-            end
-        end
-    end
-
-    return ReturnMob
+    ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
 
 return ReturnTable
