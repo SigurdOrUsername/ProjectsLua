@@ -483,7 +483,7 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
     end
 
     Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
-    task.wait(1)
+    task.wait(2)
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
 
