@@ -1,4 +1,4 @@
-print("server: 2.0.3")
+print("server: 2.0.4")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -425,7 +425,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
         local GolemCount = 0
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
             if Mob.Name == "Golem" then
-                if GolemCount == 3 then
+                if GolemCount == 1 then
                     warn(Mob.Name, "returning")
                     return Mob
                 end
