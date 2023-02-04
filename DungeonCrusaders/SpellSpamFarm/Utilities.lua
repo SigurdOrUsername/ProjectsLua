@@ -1,4 +1,4 @@
-print("server: 2.0.5")
+print("server: 2.0.55")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -491,7 +491,7 @@ end
 
 --Doding
 ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
-ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 45, 0)
+ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 55, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(10)
