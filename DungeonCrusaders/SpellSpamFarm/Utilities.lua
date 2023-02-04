@@ -8,7 +8,7 @@ local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
 local MarketplaceService = game:GetService("MarketplaceService")
-local GameName = MarketplaceService:GetProductInfo(game.PlaceId)
+local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
 --local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 
 local ReturnTable = {}
