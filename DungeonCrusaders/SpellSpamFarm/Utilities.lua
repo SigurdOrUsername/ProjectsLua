@@ -424,11 +424,15 @@ ReturnTable.DungeonManager.PrioritizedMob = {
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
-    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-        if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-            ReturnMob = Mob
-            if table.find(ReturnTable.DungeonManager.PrioritizedMob, Mob.Name) then
-                return Mob
+    for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
+        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+            if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+
+                ReturnMob = Mob
+                if Mob.Name == PrioritizedMob then
+                    return Mob
+                end
+
             end
         end
     end
@@ -484,7 +488,7 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
 
     if ObjectToGoTo then
         Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
-        task.wait(2)
+        task.wait(1)
     end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
