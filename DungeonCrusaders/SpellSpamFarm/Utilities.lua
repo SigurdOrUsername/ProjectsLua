@@ -393,7 +393,8 @@ ReturnTable.DungeonManager.WhitelistedMobParts = {
     "DisplayName",
     "Animate",
     "AnimSaves",
-    "Rotate"
+    "Rotate",
+    "Highlight"
 }
 
 ReturnTable.DungeonManager.IsARealMob = function(Mob)
@@ -425,9 +426,8 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
-        warn(PrioritizedMob)
         if StageObject:FindFirstChild(PrioritizedMob) then
-            print("found")
+            print("found", PrioritizedMob)
             return Mob
         end
     end
