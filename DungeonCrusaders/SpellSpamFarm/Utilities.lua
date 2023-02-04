@@ -446,6 +446,7 @@ ReturnTable.DungeonManager.StagePrioritizing = {
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
+    print(GameName, ReturnTable.DungeonManager.StagePrioritizing[GameName])
     if ReturnTable.DungeonManager.StagePrioritizing[GameName] and ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name] then
         warn("Special stuff")
         return ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name](StageObject)
