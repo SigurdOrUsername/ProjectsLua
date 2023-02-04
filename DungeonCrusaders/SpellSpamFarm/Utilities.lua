@@ -420,9 +420,28 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem",
     "Eyeball"
 }
+ReturnTable.DungeonManager.StagePrioritizing = {
+    ["Stage4"] = function(StageObject)
+        warn("spesific stage")
+
+        local GolemCount = 0
+        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+            if Mob.Name == "Golem" and GolemCount == 1 then
+                return Mob
+            end
+            if Mob.Name == "Golem" then
+                GolemCount = GolemCount + 1
+            end
+        end
+    end
+}
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
+
+    if ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name] then
+        return ReturnTable.DungeonManager.StagePrioritizing[StageObject.Name](StageObject)
+    end
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
         if StageObject:FindFirstChild(PrioritizedMob) then
