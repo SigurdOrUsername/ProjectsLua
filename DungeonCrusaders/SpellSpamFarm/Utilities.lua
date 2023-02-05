@@ -9,7 +9,6 @@ local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
 local MarketplaceService = game:GetService("MarketplaceService")
 local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
---local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 
 local ReturnTable = {}
 
@@ -20,7 +19,7 @@ ReturnTable.DungeonManager = {}
 ReturnTable.DungeonManager.DodingManager = {}
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents = {}
 
-ExploitEnv.FirstTimeSeeingStage = false
+ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
 
 ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     local StorageFile
@@ -510,13 +509,6 @@ end
 --Doding
 ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 55, 0)
-
-for Index, Mob in next, DungeonManager.GetAllMobsInStage(StageObject) do
-    if Mob.Name == "ToungeCrawler" and DungeonManager.GetPrimaryPart(Mob) then
-        Player.Character.HumanoidRootPart.CFrame = CFrame.new(DungeonManager.GetPrimaryPart(Mob).Position + DungeonManager.DodingManager.Offset)
-        task.wait(1)
-    end
-end
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(10)
