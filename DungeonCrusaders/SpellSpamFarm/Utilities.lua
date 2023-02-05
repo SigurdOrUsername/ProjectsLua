@@ -449,7 +449,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                    if ToungeCrawlerCount >= 2 then
+                    if ToungeCrawlerCount > 2 then
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                         task.wait(1.5)
                     end
@@ -534,7 +534,7 @@ end
 
 --Doding
 ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
-ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 55, 0)
+ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 40, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(10)
