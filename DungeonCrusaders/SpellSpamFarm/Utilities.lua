@@ -380,7 +380,6 @@ end
 
 ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
-        task.wait()
         ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
         ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
         --ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
@@ -457,7 +456,7 @@ ReturnTable.DungeonManager.OnNewStage = {
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
             if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                task.wait(2)
+                task.wait(1.5)
             end
         end
     end
