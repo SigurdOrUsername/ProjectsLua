@@ -19,7 +19,7 @@ ReturnTable.DungeonManager = {}
 ReturnTable.DungeonManager.DodingManager = {}
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents = {}
 
-ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
+ReturnTable.ExploitEnv.FirstTimeSeeingStage = true
 
 ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     local StorageFile
@@ -53,7 +53,6 @@ end
 
 ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
     local AllLevelReqs = require(ReplicatedStorage.Core.CoreInfo.PartyLevels.RequiredLevels)
-
     local PlayerLevel = ServerNetwork:InvokeServer("DataFunctions", {
         Function = "RetrieveLevelFromPlayer",
         Player = Player
@@ -442,7 +441,7 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
     }
 }
 ReturnTable.DungeonManager.OnNewStage = {
-    ["Dark Atlantis"] = function()
+    ["Dark Atlantis"] = function(StageObject)
         warn("new stage atlantis")
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
             if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
@@ -458,7 +457,7 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
 
     if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
-        ReturnTable.DungeonManager.OnNewStage[GameName]()
+        ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
     end
 
     if ReturnTable.DungeonManager.HandleSpecialStage[GameName] and ReturnTable.DungeonManager.HandleSpecialStage[GameName][StageObject.Name] then
