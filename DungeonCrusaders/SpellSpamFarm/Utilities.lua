@@ -465,11 +465,11 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
         
-        if not ReturnTable.DungeonManager.IgnoreNewStageRule[GameName][StageObject.Name] then
-            warn("went to stage", StageObject)
+        if not table.find(ReturnTable.DungeonManager.IgnoreNewStageRule[GameName], StageObject.Name) then
+            warn("went to stage H", StageObject)
             ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
         else
-            warn("would've gone to stage but ignore rule", StageObject)
+            warn("would've gone to stage but ignore rule H", StageObject)
         end
     end
 
