@@ -421,6 +421,7 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem",
     "Eyeball"
 }
+
 ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
@@ -440,16 +441,19 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
         end
     }
 }
+
 ReturnTable.DungeonManager.OnNewStage = {
     ["Dark Atlantis"] = {
         ["Stage2"] = function(StageObject)
-            warn("doing thing")
+            warn("doing thing H")
             local ToungeCrawlerCount = 0
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                     if ToungeCrawlerCount >= 3 then
+                        print("penis")
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                        task.wait(1)
                     end
 
                     ToungeCrawlerCount = ToungeCrawlerCount + 1
@@ -457,13 +461,15 @@ ReturnTable.DungeonManager.OnNewStage = {
             end
         end,
         ["Stage4"] = function(StageObject)
-            warn("doing thing")
+            warn("doing thing H")
             local ToungeCrawlerCount = 0
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                     if ToungeCrawlerCount >= 2 then
+                        print("penis 2")
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                        task.wait(1)
                     end
 
                     ToungeCrawlerCount = ToungeCrawlerCount + 1
@@ -474,7 +480,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 }
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
-    if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name] then
+    if ReturnTable.DungeonManager.OnNewStage[GameName] and ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
         ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name](StageObject)
     end
