@@ -380,9 +380,10 @@ end
 
 ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
+        task.wait()
         ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
         ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+        --ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
     end)
 end
 
@@ -424,6 +425,9 @@ ReturnTable.DungeonManager.PrioritizedMob = {
 ReturnTable.DungeonManager.IgnoreNewStageRule = {
     ["Dark Atlantis"] = {
         "Stage1",
+        "Stage5",
+        "Stage6",
+        "Stage8",
         "Stage9",
         "Stage10"
     }
@@ -453,7 +457,7 @@ ReturnTable.DungeonManager.OnNewStage = {
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
             if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                task.wait(1)
+                task.wait(2)
             end
         end
     end
@@ -466,10 +470,7 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
         
         if not table.find(ReturnTable.DungeonManager.IgnoreNewStageRule[GameName], StageObject.Name) then
-            warn("went to stage H", StageObject)
             ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
-        else
-            warn("would've gone to stage but ignore rule H", StageObject)
         end
     end
 
