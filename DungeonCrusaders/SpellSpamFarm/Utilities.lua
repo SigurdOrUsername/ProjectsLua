@@ -445,12 +445,12 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
 ReturnTable.DungeonManager.OnNewStage = {
     ["Dark Atlantis"] = {
         ["Stage2"] = function(StageObject)
-            warn("doing thing H")
+            warn("doing thing HS")
             local ToungeCrawlerCount = 0
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                    if ToungeCrawlerCount >= 3 then
+                    if ToungeCrawlerCount >= 2 then
                         print("penis")
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                         task.wait(1)
@@ -461,18 +461,24 @@ ReturnTable.DungeonManager.OnNewStage = {
             end
         end,
         ["Stage4"] = function(StageObject)
-            warn("doing thing H")
             local ToungeCrawlerCount = 0
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                    if ToungeCrawlerCount >= 2 then
-                        print("penis 2")
+                    if ToungeCrawlerCount == 2 then
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                         task.wait(1)
                     end
 
                     ToungeCrawlerCount = ToungeCrawlerCount + 1
+                end
+            end
+        end,
+        ["Stage7"] = function(StageObject)
+            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    task.wait(1)
                 end
             end
         end
