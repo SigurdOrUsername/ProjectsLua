@@ -421,6 +421,14 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem",
     "Eyeball"
 }
+ReturnTable.DungeonManager.IgnoreNewStageRule = {
+    ["Dark Atlantis"] = {
+        "Stage1",
+        "Stage9",
+        "Stage10"
+    }
+}
+
 ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
@@ -442,7 +450,6 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
 }
 ReturnTable.DungeonManager.OnNewStage = {
     ["Dark Atlantis"] = function(StageObject)
-        warn("new stage atlantis")
         for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
             if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
@@ -457,7 +464,13 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
 
     if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
-        ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
+        
+        if not ReturnTable.DungeonManager.IgnoreNewStageRule[GameName][StageObject.Name] then
+            warn("went to stage", StageObject)
+            ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
+        else
+            warn("would've gone to stage but ignore rule", StageObject)
+        end
     end
 
     if ReturnTable.DungeonManager.HandleSpecialStage[GameName] and ReturnTable.DungeonManager.HandleSpecialStage[GameName][StageObject.Name] then
