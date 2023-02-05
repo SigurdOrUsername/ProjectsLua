@@ -445,15 +445,13 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
 ReturnTable.DungeonManager.OnNewStage = {
     ["Dark Atlantis"] = {
         ["Stage2"] = function(StageObject)
-            warn("doing thing HS")
             local ToungeCrawlerCount = 0
 
             for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
                 if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
                     if ToungeCrawlerCount >= 2 then
-                        print("penis")
                         Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                        task.wait(1)
+                        task.wait(1.5)
                     end
 
                     ToungeCrawlerCount = ToungeCrawlerCount + 1
