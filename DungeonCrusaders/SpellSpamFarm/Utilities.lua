@@ -456,8 +456,8 @@ ReturnTable.DungeonManager.OnNewStage = {
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
-    if ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
-        ExploitEnv.FirstTimeSeeingStage = false
+    if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
+        ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
         ReturnTable.DungeonManager.OnNewStage[GameName]()
     end
 
