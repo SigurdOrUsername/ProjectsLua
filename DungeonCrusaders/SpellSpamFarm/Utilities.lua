@@ -421,17 +421,6 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem",
     "Eyeball"
 }
-ReturnTable.DungeonManager.IgnoreNewStageRule = {
-    ["Dark Atlantis"] = {
-        "Stage1",
-        "Stage5",
-        "Stage6",
-        "Stage8",
-        "Stage9",
-        "Stage10"
-    }
-}
-
 ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
@@ -452,25 +441,42 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
     }
 }
 ReturnTable.DungeonManager.OnNewStage = {
-    ["Dark Atlantis"] = function(StageObject)
-        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-            if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                task.wait(1.5)
+    ["Dark Atlantis"] = {
+        ["Stage2"] = function(StageObject)
+            warn("doing thing")
+            local ToungeCrawlerCount = 0
+
+            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+                    if ToungeCrawlerCount >= 3 then
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    end
+
+                    ToungeCrawlerCount = ToungeCrawlerCount + 1
+                end
+            end
+        end,
+        ["Stage4"] = function(StageObject)
+            warn("doing thing")
+            local ToungeCrawlerCount = 0
+
+            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+                    if ToungeCrawlerCount >= 2 then
+                        Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    end
+
+                    ToungeCrawlerCount = ToungeCrawlerCount + 1
+                end
             end
         end
-    end
+    },
 }
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
-    local ReturnMob
-
-    if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
+    if ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
-        
-        if not table.find(ReturnTable.DungeonManager.IgnoreNewStageRule[GameName], StageObject.Name) then
-            ReturnTable.DungeonManager.OnNewStage[GameName](StageObject)
-        end
+        ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name](StageObject)
     end
 
     if ReturnTable.DungeonManager.HandleSpecialStage[GameName] and ReturnTable.DungeonManager.HandleSpecialStage[GameName][StageObject.Name] then
@@ -485,11 +491,9 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
 
     for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
         if ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-            ReturnMob = Mob
+            return Mob
         end
     end
-
-    return ReturnMob
 end
 
 ReturnTable.DungeonManager.SendWebook = function(InfoTable)
