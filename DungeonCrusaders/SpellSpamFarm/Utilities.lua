@@ -1,4 +1,4 @@
-print("server: 2.0.55")
+print("server: 2.0.6")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -19,6 +19,8 @@ ReturnTable.InventoryManager = {}
 ReturnTable.DungeonManager = {}
 ReturnTable.DungeonManager.DodingManager = {}
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents = {}
+
+ExploitEnv.FirstTimeSeeingStage = false
 
 ReturnTable.LobbyManager.ReadWriteStorageFile = function()
     local StorageFile
@@ -421,7 +423,7 @@ ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem",
     "Eyeball"
 }
-ReturnTable.DungeonManager.StagePrioritizing = {
+ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
             local GolemCount = 0
@@ -440,12 +442,28 @@ ReturnTable.DungeonManager.StagePrioritizing = {
         end
     }
 }
+ReturnTable.DungeonManager.OnNewStage = {
+    ["Dark Atlantis"] = function()
+        warn("new stage atlantis")
+        for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+            if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                task.wait(1)
+            end
+        end
+    end
+}
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     local ReturnMob
 
-    if ReturnTable.DungeonManager.StagePrioritizing[GameName] and ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name] then
-        return ReturnTable.DungeonManager.StagePrioritizing[GameName][StageObject.Name](StageObject)
+    if ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName] then
+        ExploitEnv.FirstTimeSeeingStage = false
+        ReturnTable.DungeonManager.OnNewStage[GameName]()
+    end
+
+    if ReturnTable.DungeonManager.HandleSpecialStage[GameName] and ReturnTable.DungeonManager.HandleSpecialStage[GameName][StageObject.Name] then
+        return ReturnTable.DungeonManager.HandleSpecialStage[GameName][StageObject.Name](StageObject)
     end
 
     for Index, PrioritizedMob in next, ReturnTable.DungeonManager.PrioritizedMob do
@@ -492,6 +510,13 @@ end
 --Doding
 ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 55, 0)
+
+for Index, Mob in next, DungeonManager.GetAllMobsInStage(StageObject) do
+    if Mob.Name == "ToungeCrawler" and DungeonManager.GetPrimaryPart(Mob) then
+        Player.Character.HumanoidRootPart.CFrame = CFrame.new(DungeonManager.GetPrimaryPart(Mob).Position + DungeonManager.DodingManager.Offset)
+        task.wait(1)
+    end
+end
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(10)
