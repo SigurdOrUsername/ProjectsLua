@@ -1,4 +1,4 @@
-print("server: 2.0.7")
+print("server: 2.0.75")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -457,7 +457,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount > 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ToungeCrawler.Hitbox.Position + ReturnTable.DungeonManager.DodingManager.Offset)
                     task.wait(1.5)
                 end
 
@@ -469,7 +469,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount == 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ToungeCrawler.Hitbox.Position + ReturnTable.DungeonManager.DodingManager.Offset)
                     task.wait(1)
                 end
 
@@ -478,7 +478,7 @@ ReturnTable.DungeonManager.OnNewStage = {
         end,
         ["Stage7"] = function(StageObject)
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ToungeCrawler.Hitbox.Position + ReturnTable.DungeonManager.DodingManager.Offset)
                 task.wait(1)
             end
         end
