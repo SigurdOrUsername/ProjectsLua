@@ -382,7 +382,7 @@ ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
         ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
         ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-        --ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
     end)
 end
 
@@ -418,8 +418,10 @@ ReturnTable.DungeonManager.GetAllMobsInStage = function(StageObject)
 end
 
 ReturnTable.DungeonManager.PrioritizedMob = {
-    "Golem",
-    "Eyeball"
+    "Golem", "Eyeball"
+}
+ReturnTable.DungeonManager.IgnoreOffsetList = {
+    "Source of the Unknown", "Protector of the Unknown", "Synthetic Noble Horseman"
 }
 
 ReturnTable.DungeonManager.HandleSpecialStage = {
@@ -483,6 +485,16 @@ ReturnTable.DungeonManager.OnNewStage = {
     },
 }
 
+ReturnTable.DungeonManager.ChangeOffset = function(Mob)
+    if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
+        warn("special mob")
+        ReturnTable.DungeonManager.Offset = Vector3.new()
+        return
+    end
+    warn("not special mob")
+    ReturnTable.DungeonManager.Offset = Vector3.new(0, 50, 0)
+end
+
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     if ReturnTable.DungeonManager.OnNewStage[GameName] and ReturnTable.ExploitEnv.FirstTimeSeeingStage and ReturnTable.DungeonManager.OnNewStage[GameName][StageObject.Name] then
         ReturnTable.ExploitEnv.FirstTimeSeeingStage = false
@@ -534,7 +546,7 @@ end
 
 --Doding
 ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
-ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 40, 0)
+ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 50, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
     task.wait(10)
