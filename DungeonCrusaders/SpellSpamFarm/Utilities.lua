@@ -1,4 +1,4 @@
-print("server: 2.0.6")
+print("server: 2.0.7")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -95,8 +95,6 @@ ReturnTable.LobbyManager.GetBestDungeonAndDifficulty = function()
 end
 
 ReturnTable.LobbyManager.AllUsersHaveJoined = function()
-    local AllHasJoined = true
-
     for Index, Plr in next, ReturnTable.ExploitEnv.MultifarmInfo.Accounts do
         local PlrUser = Players:FindFirstChild(Plr)
 
@@ -108,7 +106,7 @@ ReturnTable.LobbyManager.AllUsersHaveJoined = function()
         end
     end
 
-    return AllHasJoined
+    return true
 end
 
 local AllItems = {}
@@ -241,12 +239,12 @@ ReturnTable.InventoryManager.GetEquippedJewelry = function()
 end
 
 ReturnTable.InventoryManager.GetBestWeapon = function()
-    local LastMatched = 0
-    local BetterWeaponItem
-
     local EquippedWeapon = ReturnTable.InventoryManager.GetEquippedWeapon() or {
         ItemStats = {[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat] = 0}
     }
+
+    local LastMatched = 0
+    local BetterWeaponItem
 
     for Index, Item in next, ReturnTable.InventoryManager.GetInventory("InvItems") do
         local ItemPreferedStat = Item.ItemStats[ReturnTable.ExploitEnv.AutoEquipBest.PreferedStat]
@@ -317,12 +315,12 @@ ReturnTable.InventoryManager.GetBestJewelry = function(WhichJewelry)
     return JewelryToEquip
 end
 
-ReturnTable.InventoryManager.HasTriplicatedSpell = function(Spell, CurItemsToSell)
+ReturnTable.InventoryManager.HasTriplicatedSpell = function(Spell, ItemsToSell)
     local Inventory = ReturnTable.InventoryManager.GetInventory("InvItems", "Inv")
     local AmountSpellsFound = 0
 
     --First go through current items to sell
-    for Index, Item in next, CurItemsToSell do
+    for Index, Item in next, ItemsToSell do
         --Remove the items from our inventory that we are going to sell to "replicate" selling without actually having to sell the item
         for InvIndex, InvItem in next, Inventory do
             if Item.ConstantItemInfo.Name == InvItem.ConstantItemInfo.Name then
@@ -347,8 +345,6 @@ ReturnTable.InventoryManager.HasTriplicatedSpell = function(Spell, CurItemsToSel
 end
 
 ReturnTable.InventoryManager.CanItemBeSold = function(Item, ItemsToSell)
-    local ReturnValue = true
-
     if table.find(ReturnTable.ExploitEnv.Autosell.RaritiesToKeep, Item.ItemStats.Tier) or table.find(ReturnTable.ExploitEnv.Autosell.ItemsToKeep, Item.ConstantItemInfo.Name) then
         return false
     end
@@ -362,7 +358,7 @@ ReturnTable.InventoryManager.CanItemBeSold = function(Item, ItemsToSell)
         return false
     end
 
-    return ReturnValue
+    return true
 end
 
 ReturnTable.InventoryManager.GetItemsToSell = function()
@@ -417,6 +413,18 @@ ReturnTable.DungeonManager.GetAllMobsInStage = function(StageObject)
     return Mobs
 end
 
+ReturnTable.DungeonManager.GetAllMobsFromName = function(StageObject, Name)
+    local SpesificMobs = {}
+
+    for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
+        if Mob.Name == Name and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+            table.insert(SpesificMobs, Mob)
+        end
+    end
+
+    return SpesificMobs
+end
+
 ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem", "Eyeball"
 }
@@ -429,14 +437,12 @@ ReturnTable.DungeonManager.HandleSpecialStage = {
         ["Stage4"] = function(StageObject)
             local GolemCount = 0
 
-            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-                if Mob.Name == "Golem" then
-                    if GolemCount == 2 then
-                        return Mob
-                    end
-
-                    GolemCount = GolemCount + 1
+            for Index, Golem in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "Golem") do
+                if GolemCount == 2 then
+                    return Mob
                 end
+
+                GolemCount = GolemCount + 1
             end
 
             return StageObject:FindFirstChildWhichIsA("Model")
@@ -449,37 +455,31 @@ ReturnTable.DungeonManager.OnNewStage = {
         ["Stage2"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
-            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                    if ToungeCrawlerCount > 2 then
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                        task.wait(1.5)
-                    end
-
-                    ToungeCrawlerCount = ToungeCrawlerCount + 1
+            for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
+                if ToungeCrawlerCount > 2 then
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    task.wait(1.5)
                 end
+
+                ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
         end,
         ["Stage4"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
-            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
-                    if ToungeCrawlerCount == 2 then
-                        Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                        task.wait(1)
-                    end
-
-                    ToungeCrawlerCount = ToungeCrawlerCount + 1
-                end
-            end
-        end,
-        ["Stage7"] = function(StageObject)
-            for Index, Mob in next, ReturnTable.DungeonManager.GetAllMobsInStage(StageObject) do
-                if Mob.Name == "ToungeCrawler" and ReturnTable.DungeonManager.GetPrimaryPart(Mob) then
+            for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
+                if ToungeCrawlerCount == 2 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                     task.wait(1)
                 end
+
+                ToungeCrawlerCount = ToungeCrawlerCount + 1
+            end
+        end,
+        ["Stage7"] = function(StageObject)
+            for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(Mob).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                task.wait(1)
             end
         end
     },
