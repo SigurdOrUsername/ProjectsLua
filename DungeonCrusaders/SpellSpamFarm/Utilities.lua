@@ -486,12 +486,12 @@ ReturnTable.DungeonManager.OnNewStage = {
 }
 
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
+    warn(Mob.Name)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
         warn("special mob")
         ReturnTable.DungeonManager.Offset = Vector3.new()
         return
     end
-    warn("not special mob")
     ReturnTable.DungeonManager.Offset = Vector3.new(0, 50, 0)
 end
 
