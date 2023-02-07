@@ -435,6 +435,7 @@ ReturnTable.DungeonManager.IgnoreOffsetList = {
 ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
+            warn("handling stage 4")
             local GolemCount = 0
 
             for Index, Golem in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "Golem") do
@@ -465,6 +466,7 @@ ReturnTable.DungeonManager.OnNewStage = {
             end
         end,
         ["Stage4"] = function(StageObject)
+            warn("first time seeing stage 4")
             local ToungeCrawlerCount = 0
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
@@ -485,13 +487,12 @@ ReturnTable.DungeonManager.OnNewStage = {
     },
 }
 
-ReturnTable.DungeonManager.ChangeOffset = function(Mob)
+ReturnTable.DungeonManager.ChangeOffset = function(Mob, Offset)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
-        warn("offset")
-        ReturnTable.DungeonManager.Offset = Vector3.new(0, -15, 0)
+        Offset = Vector3.new(0, -15, 0)
         return
     end
-    ReturnTable.DungeonManager.Offset = Vector3.new(0, 50, 0)
+    Offset = Vector3.new(0, 50, 0)
 end
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
