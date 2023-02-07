@@ -567,3 +567,5 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
     end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
+
+return ReturnTable
