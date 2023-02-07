@@ -1,4 +1,4 @@
-print("server: 2.0.1")
+print("server: 2.0.5")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -375,13 +375,11 @@ ReturnTable.InventoryManager.GetItemsToSell = function()
 end
 
 ReturnTable.DungeonManager.FireSpells = function()
-    coroutine.wrap(function()
-        pcall(function()
-            ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-            ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-            ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
-        end)
-    end)()
+    pcall(function()
+        ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
+        ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
+        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+    end)
 end
 
 ReturnTable.DungeonManager.GetPrimaryPart = function(Mob)
