@@ -1,4 +1,4 @@
-print("server: 2.1.0")
+print("server: 2.1.1")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -487,12 +487,11 @@ ReturnTable.DungeonManager.OnNewStage = {
     },
 }
 
-ReturnTable.DungeonManager.ChangeOffset = function(Mob, Offset)
+ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
-        Offset = Vector3.new(0, -15, 0)
-        return
+        return Vector3.new(0, -15, 0)
     end
-    Offset = Vector3.new(0, 50, 0)
+    return Vector3.new(0, 50, 0)
 end
 
 ReturnTable.DungeonManager.GetBestMob = function(StageObject)
