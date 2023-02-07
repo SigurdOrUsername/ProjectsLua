@@ -1,4 +1,4 @@
-print("server: 2.1.1")
+print("server: 2.0.1")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -375,11 +375,13 @@ ReturnTable.InventoryManager.GetItemsToSell = function()
 end
 
 ReturnTable.DungeonManager.FireSpells = function()
-    pcall(function()
-        ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-        ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
-    end)
+    coroutine.wrap(function()
+        pcall(function()
+            ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
+            ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
+            ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+        end)
+    end)()
 end
 
 ReturnTable.DungeonManager.GetPrimaryPart = function(Mob)
@@ -435,17 +437,16 @@ ReturnTable.DungeonManager.IgnoreOffsetList = {
 ReturnTable.DungeonManager.HandleSpecialStage = {
     ["Dark Atlantis"] = {
         ["Stage4"] = function(StageObject)
-            warn("handling stage 4")
             local GolemCount = 0
 
             for Index, Golem in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "Golem") do
                 if GolemCount == 2 then
-                    return Mob
+                    return Golem
                 end
 
                 GolemCount = GolemCount + 1
             end
-
+            
             return StageObject:FindFirstChildWhichIsA("Model")
         end
     }
@@ -457,16 +458,15 @@ ReturnTable.DungeonManager.OnNewStage = {
             local ToungeCrawlerCount = 0
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                if ToungeCrawlerCount > 2 then
+                if ToungeCrawlerCount == 4 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                    task.wait(1.5)
+                    task.wait(2)
                 end
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
         end,
         ["Stage4"] = function(StageObject)
-            warn("first time seeing stage 4")
             local ToungeCrawlerCount = 0
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
@@ -489,7 +489,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
-        return Vector3.new(0, -15, 0)
+        return Vector3.new()
     end
     return Vector3.new(0, 50, 0)
 end
@@ -569,5 +569,3 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
     end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
-
-return ReturnTable
