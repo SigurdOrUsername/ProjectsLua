@@ -1,4 +1,4 @@
-print("server: 2.0.1")
+print("server: 2.0.2")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -487,7 +487,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
-        return Vector3.new()
+        return Vector3.new(0, 1, 0)
     end
     return Vector3.new(0, 50, 0)
 end
