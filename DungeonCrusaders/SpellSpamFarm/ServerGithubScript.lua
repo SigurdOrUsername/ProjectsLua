@@ -1,4 +1,4 @@
-print("server: 2.0.3")
+print("server: 2.0.4")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -460,7 +460,7 @@ ReturnTable.DungeonManager.OnNewStage = {
             local ToungeCrawlerCount = 0
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                if ToungeCrawlerCount == 4 then
+                if ToungeCrawlerCount > 2 and ToungeCrawler < 4 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                     task.wait(2)
                 end
@@ -552,7 +552,7 @@ ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 50, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
-    task.wait(10)
+    task.wait(10.5)
 
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = true
     local ObjectToGoTo
@@ -569,7 +569,7 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
 
     if ObjectToGoTo then
         Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
-        task.wait(1)
+        task.wait(0.5)
     end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
