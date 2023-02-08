@@ -1,4 +1,4 @@
-print("server: 2.0.2")
+print("server: 2.0.3")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -374,11 +374,15 @@ ReturnTable.InventoryManager.GetItemsToSell = function()
     return ItemsToSell
 end
 
+ReturnTable.DungeonManager.DoSwings = false
 ReturnTable.DungeonManager.FireSpells = function()
     pcall(function()
         ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
         ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
-        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+
+        if ReturnTable.DungeonManager.DoSwings then
+            ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+        end
     end)
 end
 
@@ -487,8 +491,10 @@ ReturnTable.DungeonManager.OnNewStage = {
 
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
+        ReturnTable.DungeonManager.DoSwings = true
         return Vector3.new(0, 1, 0)
     end
+    ReturnTable.DungeonManager.DoSwings = false
     return Vector3.new(0, 50, 0)
 end
 
