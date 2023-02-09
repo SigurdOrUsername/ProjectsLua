@@ -1,4 +1,4 @@
-print("server: 2.0.455")
+print("server: 2.0.5")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -460,7 +460,7 @@ ReturnTable.DungeonManager.OnNewStage = {
             local ToungeCrawlerCount = 0
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                if ToungeCrawlerCount > 2 and ToungeCrawlerCount =< 4 then
+                if ToungeCrawlerCount > 2 and ToungeCrawlerCount <= 4 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                     task.wait(2)
                 end
