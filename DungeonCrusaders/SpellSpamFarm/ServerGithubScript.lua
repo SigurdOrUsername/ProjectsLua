@@ -1,4 +1,4 @@
-print("server: 2.0.6")
+print("server: 2.0.61")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
