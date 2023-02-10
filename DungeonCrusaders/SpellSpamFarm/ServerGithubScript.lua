@@ -1,4 +1,4 @@
-print("server: 2.0.50")
+print("server: 2.0.6")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -7,8 +7,13 @@ local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwor
 local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
+local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+
+local ServerScriptInfo = {}
+
+ServerScriptInfo.ShouldFly = false
 
 local ReturnTable = {}
 
@@ -429,6 +434,12 @@ ReturnTable.DungeonManager.GetAllMobsFromName = function(StageObject, Name)
     return SpesificMobs
 end
 
+RunService.Stepped:Connect(function()
+    if ServerScriptInfo.ShouldFly and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.Velocity = Vector3.new()
+    end
+end)
+
 ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem", "Eyeball"
 }
@@ -459,6 +470,7 @@ ReturnTable.DungeonManager.OnNewStage = {
         ["Stage2"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
+            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount > 2 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
@@ -467,10 +479,12 @@ ReturnTable.DungeonManager.OnNewStage = {
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
+            ServerScriptInfo.ShouldFly = false
         end,
         ["Stage4"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
+            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount == 2 then
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
@@ -479,12 +493,15 @@ ReturnTable.DungeonManager.OnNewStage = {
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
+            ServerScriptInfo.ShouldFly = false
         end,
         ["Stage7"] = function(StageObject)
+            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
                 task.wait(1)
             end
+            ServerScriptInfo.ShouldFly = false
         end
     },
 }
