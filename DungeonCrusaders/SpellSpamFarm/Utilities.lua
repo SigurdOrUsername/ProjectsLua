@@ -1,4 +1,5 @@
-print("server: 2.0.61")
+
+print("server: 2.0.7")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -10,10 +11,6 @@ local Request = http_request or request or HttpPost or syn.request
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
-
-local ServerScriptInfo = {}
-
-ServerScriptInfo.ShouldFly = false
 
 local ReturnTable = {}
 
@@ -435,8 +432,8 @@ ReturnTable.DungeonManager.GetAllMobsFromName = function(StageObject, Name)
 end
 
 RunService.Stepped:Connect(function()
-    if ServerScriptInfo.ShouldFly and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        Player.Character.HumanoidRootPart.Velocity = Vector3.new()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.Velocity = Vector3.new(0, 1, 0)
     end
 end)
 
@@ -470,38 +467,32 @@ ReturnTable.DungeonManager.OnNewStage = {
         ["Stage2"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
-            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount > 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
-                    task.wait(0.8)
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
+                    task.wait(1.5)
                 end
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
-            ServerScriptInfo.ShouldFly = false
         end,
         ["Stage4"] = function(StageObject)
             local ToungeCrawlerCount = 0
 
-            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount == 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
                     task.wait(1)
                 end
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
             end
-            ServerScriptInfo.ShouldFly = false
         end,
         ["Stage7"] = function(StageObject)
-            ServerScriptInfo.ShouldFly = true
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + ReturnTable.DungeonManager.DodingManager.Offset)
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
                 task.wait(1)
             end
-            ServerScriptInfo.ShouldFly = false
         end
     },
 }
@@ -509,7 +500,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
         ReturnTable.DungeonManager.DoSwings = true
-        return Vector3.new(0, 1, 0)
+        return Vector3.new(0, 10, 0)
     end
     ReturnTable.DungeonManager.DoSwings = false
     return Vector3.new(0, 50, 0)
@@ -590,5 +581,3 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
     end
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
-
-return ReturnTable
