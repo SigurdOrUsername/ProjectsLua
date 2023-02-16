@@ -1,14 +1,13 @@
-
 print("server: 2.0.7")
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
+local InputHandlerENV = getsenv(Player.PlayerScripts.Main.main.Core.InputHandler)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClientServerNetwork = ReplicatedStorage.Core.CoreEvents.ClientServerNetwork
 local ServerNetwork = ClientServerNetwork.ServerNetwork
 local HttpService = game:GetService("HttpService")
 local Request = http_request or request or HttpPost or syn.request
-local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
 
@@ -22,22 +21,10 @@ ReturnTable.DungeonManager.DodingManager = {}
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents = {}
 
 ReturnTable.ExploitEnv.FirstTimeSeeingStage = true
-
-ReturnTable.LobbyManager.ReadWriteStorageFile = function()
-    local StorageFile
-    local HasStorageFile = pcall(function()
-        readfile("StorageFile.txt")
-    end)
-
-    if not HasStorageFile then
-        writefile("StorageFile.txt", "0")
-        StorageFile = readfile("StorageFile.txt")
-    else
-        StorageFile = readfile("StorageFile.txt")
-    end
-
-    return StorageFile
-end
+ReturnTable.ExploitEnv.Swinging = {
+    DoSwings = false,
+    Cooldown = tick()
+}
 
 ReturnTable.LobbyManager.ChildrenHasSameValues = function(Table, FirstValue)
     local LastMatched = Table[FirstValue]
@@ -376,16 +363,14 @@ ReturnTable.InventoryManager.GetItemsToSell = function()
     return ItemsToSell
 end
 
-ReturnTable.DungeonManager.DoSwings = false
 ReturnTable.DungeonManager.FireSpells = function()
-    pcall(function()
-        ClientServerNetwork.MagicFunction:InvokeServer("Q", "Spell")
-        ClientServerNetwork.MagicFunction:InvokeServer("E", "Spell")
+    InputHandlerENV.ActivateQ()
+    InputHandlerENV.ActivateE()
 
-        if ReturnTable.DungeonManager.DoSwings then
-            ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
-        end
-    end)
+    if ReturnTable.ExploitEnv.Swinging.DoSwings and tick() - ReturnTable.ExploitEnv.Swinging.Cooldown > 0.5 then
+        ClientServerNetwork.MagicNetwork:FireServer("Swing", Vector3.new())
+        ReturnTable.ExploitEnv.Swinging.Cooldown = tick()
+    end
 end
 
 ReturnTable.DungeonManager.GetPrimaryPart = function(Mob)
@@ -431,11 +416,14 @@ ReturnTable.DungeonManager.GetAllMobsFromName = function(StageObject, Name)
     return SpesificMobs
 end
 
-RunService.Stepped:Connect(function()
-    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        Player.Character.HumanoidRootPart.Velocity = Vector3.new(0, 1, 0)
+ReturnTable.DungeonManager.DoTickTeleport = function(Time, CFrame)
+    local Timer = tick()
+
+    while tick() - Timer < Time do
+        Player.Character.HumanoidRootPart.CFrame = CFrame
+        task.wait()
     end
-end)
+end
 
 ReturnTable.DungeonManager.PrioritizedMob = {
     "Golem", "Eyeball"
@@ -469,8 +457,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount > 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
-                    task.wait(1.5)
+                    ReturnTable.DungeonManager.DoTickTeleport(1, CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0)))
                 end
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
@@ -481,8 +468,7 @@ ReturnTable.DungeonManager.OnNewStage = {
 
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
                 if ToungeCrawlerCount == 2 then
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
-                    task.wait(1)
+                    ReturnTable.DungeonManager.DoTickTeleport(2, CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0)))
                 end
 
                 ToungeCrawlerCount = ToungeCrawlerCount + 1
@@ -490,8 +476,7 @@ ReturnTable.DungeonManager.OnNewStage = {
         end,
         ["Stage7"] = function(StageObject)
             for Index, ToungeCrawler in next, ReturnTable.DungeonManager.GetAllMobsFromName(StageObject, "ToungeCrawler") do
-                Player.Character.HumanoidRootPart.CFrame = CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0))
-                task.wait(1)
+                ReturnTable.DungeonManager.DoTickTeleport(1, CFrame.new(ReturnTable.DungeonManager.GetPrimaryPart(ToungeCrawler).Position + Vector3.new(0, 50, 0)))
             end
         end
     },
@@ -499,10 +484,10 @@ ReturnTable.DungeonManager.OnNewStage = {
 
 ReturnTable.DungeonManager.ChangeOffset = function(Mob)
     if table.find(ReturnTable.DungeonManager.IgnoreOffsetList, Mob.Name) then
-        ReturnTable.DungeonManager.DoSwings = true
+        ReturnTable.ExploitEnv.Swinging.DoSwings = true
         return Vector3.new(0, 10, 0)
     end
-    ReturnTable.DungeonManager.DoSwings = false
+    ReturnTable.ExploitEnv.Swinging.DoSwings = false
     return Vector3.new(0, 50, 0)
 end
 
@@ -529,7 +514,7 @@ ReturnTable.DungeonManager.GetBestMob = function(StageObject)
     end
 end
 
-ReturnTable.DungeonManager.SendWebook = function(InfoTable)
+ReturnTable.SendWebook = function(InfoTable)
     local Data = {
         content = InfoTable.Content,
         embeds = {
@@ -560,11 +545,10 @@ ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 ReturnTable.DungeonManager.DodingManager.Offset = Vector3.new(0, 50, 0)
 
 ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossColor = function(FillObject)
-    task.wait(10.5)
+    task.wait(10)
 
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = true
     local ObjectToGoTo
-
     if FillObject.FillColor.R == 1 then
         ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Red")
     end
@@ -575,9 +559,8 @@ ReturnTable.DungeonManager.DodingManager.SpesificDungeonEvents.CoveSecondBossCol
         ObjectToGoTo = workspace.Filter.Effects:WaitForChild("Blue")
     end
 
-    if ObjectToGoTo then
-        Player.Character.HumanoidRootPart.CFrame = ObjectToGoTo.Hitbox.CFrame
-        task.wait(0.5)
-    end
+    ReturnTable.DungeonManager.DoTickTeleport(1, ObjectToGoTo.Hitbox.CFrame)
     ReturnTable.DungeonManager.DodingManager.StopTeleporting = false
 end
+
+return ReturnTable
