@@ -1730,7 +1730,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			        ItemCount = ItemCount - 1
 			    end
 			    if ItemCount == 0 then
-			        FrameSize = 0
+			        FrameSize = 43
 			    elseif ItemCount == 1 then
 					FrameSize = 78
 				elseif ItemCount == 2 then
@@ -1738,7 +1738,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 				elseif ItemCount >= 3 then
 					FrameSize = 133
 				end
-                if DropToggled == true then
+				if DropToggled == true then
 					Title.Text = Selected
 					Dropdown:TweenSize(UDim2.new(0, 457, 0, 43), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
 					TweenService:Create(
