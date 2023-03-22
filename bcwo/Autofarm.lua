@@ -77,26 +77,48 @@ end
 local Mining_Info = {
     Init = false,
     OreBlacklist_Visual,
-    OreBlacklist = {}
+    OreBlacklist = {},
+
+    ToolName = "",
+    Timer = tick(),
+    FarmAllOresToggle,
+    FarmNonBlacklistedOresToggle,
+    FarmAllOres = false,
+    FarmNonBlacklistedOres = false,
 }
 
-local function ShouldOreBeShown(Ore)
+local function IsRealOre(Ore)
+    return Ore.Mineral.Position.X > -2000 and Ore.Mineral.Position.Y < 1000
+end
+
+local function IsOreNotInBlackList(Ore)
+    local OreObject = type(Ore) == "table" and Ore.Object.Parent or Ore
     for Index, BlacklistedOre in next, Mining_Info.OreBlacklist do
-        if BlacklistedOre.Ore == Ore.Object.Parent.Name then
+        if BlacklistedOre.Ore == OreObject.Name then
             return false
         end
     end
     return true
 end
 
+local function GetOres(AllOres, NonBlacklistedOres)
+    local ValidOres = {}
+    for Index, Ore in next, workspace.Map.Ores:GetChildren() do
+        if IsRealOre(Ore) and (NonBlacklistedOres and IsOreNotInBlackList(Ore.Name) or AllOres and true) then
+            table.insert(ValidOres, Ore)
+        end
+    end
+    return ValidOres
+end
+
 local function InitMiningESP()
     if not workspace:FindFirstChild("Map") then Flux:Notification("No ores found", "ok lol") return false end
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if Ore:FindFirstChild("Mineral") then
+        if IsRealOre(Ore) then
             ESP:Add(Ore.Mineral, {
                 Name = Ore.Name,
                 Color = Ore.Mineral.Color,
-                IsEnabled = ShouldOreBeShown
+                IsEnabled = IsOreNotInBlackList
             })
         end
     end
@@ -104,7 +126,7 @@ local function InitMiningESP()
         ESP:Add(Ore:WaitForChild("Mineral"), {
             Name = Ore.Name,
             Color = Ore.Mineral.Color,
-            IsEnabled = ShouldOreBeShown
+            IsEnabled = IsOreNotInBlackList
         })
     end)
     return true
@@ -118,7 +140,7 @@ Mining:Toggle("Enable ESP", "Toggles the ESP", false, function(Value)
 end)
 
 Mining:Line()
-Mining:Label("ESP blacklist", Color3.fromRGB(255, 144, 118))
+Mining:Label("ESP blacklist (and farm blacklist)", Color3.fromRGB(255, 144, 118))
 Mining:Line()
 
 Mining_Info.OreBlacklist_Visual = Mining:Dropdown("Current blacklist", Mining_Info.OreBlacklist, function() end)
@@ -135,6 +157,38 @@ Mining:Textbox("Remove from blacklist", "Removes ores from the blacklist", true,
         Mining_Info.OreBlacklist[BlacklistIndex] = nil
     else
         return Flux:Notification("Did not find " .. Value .. " in the blacklist", "ok lol")
+    end
+end)
+
+Mining:Line()
+Mining:Label("Farming ores", Color3.fromRGB(255, 144, 118))
+Mining:Line()
+
+Mining_Info.FarmAllOresToggle = Mining:Toggle("Farm all ores", "", false, function(Value)
+    if not workspace:FindFirstChild("Map") then return Flux:Notification("why are you trying to mine ores when there arent any??", "you dumb ass") end
+    if Value and Mining_Info.FarmNonBlacklistedOres then
+        Mining_Info.FarmNonBlacklistedOresToggle:Set(false)
+        Mining_Info.FarmNonBlacklistedOres = false
+    end
+    Mining_Info.FarmAllOres = Value
+    Mining_Info.ToolName = ""
+end)
+Mining_Info.FarmNonBlacklistedOresToggle = Mining:Toggle("Farm all non-blacklisted ores", "", false, function(Value)
+    if not workspace:FindFirstChild("Map") then return Flux:Notification("why are you trying to mine ores when there arent any??", "you dumb ass") end
+    if Value and Mining_Info.FarmAllOres then
+        Mining_Info.FarmAllOresToggle:Set(false)
+        Mining_Info.FarmAllOres = false
+    end
+    Mining_Info.FarmNonBlacklistedOres = Value
+    Mining_Info.ToolName = ""
+end)
+
+Mining:Line()
+Mining:Button("Tp to the Beneath", "", function()
+    if workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("BeneathTeleporter") then
+        workspace.Map.BeneathTeleporter.RemoteFunction:InvokeServer("Confirm")
+    else
+        Flux:Notification("No beneath teleporter found", "ok lol")
     end
 end)
 
@@ -165,9 +219,6 @@ local function AddToStats(StatTable, Stat_Visual, Info)
         StatTable[#StatTable].Label.TextColor3 = Info.Color
     end
 end
-
-Stats:Label("Stats for different things", Color3.fromRGB(255, 144, 118))
-Stats:Line()
 
 Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, function() end)
 Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
@@ -202,12 +253,39 @@ while task.wait() do
                     workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                     ChangeToolGrip(PlayerTool, MobPrimaryPart)
                     
-                    --Attack mobs every 0.5 sec
-                    if tick() - Autofarm_Info.Timer > 0.5 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    --Attack mobs every 0.25 sec
+                    if tick() - Autofarm_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
                         coroutine.wrap(function()
                             PlayerTool.RemoteFunction:InvokeServer("hit", {})
                         end)()
                         Autofarm_Info.Timer = tick()
+                    end
+                    task.wait()
+                end
+            end
+        end
+    end
+
+    if Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres then
+        --Transfer tool to char if in backpack
+        local IsInBackpack = Player.Backpack:FindFirstChild(Mining_Info.ToolName)
+        if IsInBackpack then
+            IsInBackpack.Parent = Player.Character
+        end
+
+        local Ores = GetOres(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
+        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+        if Ores and PlayerTool then
+            for Index, Ore in next, Ores do
+                while Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:IsDescendantOf(workspace) do
+                    Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
+
+                    --Mine every 0.5 sec
+                    if tick() - Mining_Info.Timer > 0.5 and PlayerTool:FindFirstChild("RemoteFunction") then
+                        coroutine.wrap(function()
+                            PlayerTool.RemoteFunction:InvokeServer("mine")
+                        end)()
+                        Mining_Info.Timer = tick()
                     end
                     task.wait()
                 end
