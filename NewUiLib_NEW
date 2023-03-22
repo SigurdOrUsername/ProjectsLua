@@ -728,6 +728,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y)
 		end
 		function ContainerContent:Toggle(text, desc,default, callback)
+            local ToggleFunc = {}
 			local ToggleDescToggled = false
 			local Toggled = false
 			if desc == "" then
@@ -994,6 +995,26 @@ function Flux:Window(text, bottom,mainclr,toclose)
 				Toggled = not Toggled
 				pcall(callback, Toggled)
 			end
+
+            function ToggleFunc:Set(Value)
+                if Value == false then
+					ToggleCircle:TweenPosition(UDim2.new(0.37, 0,-0.273, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .3, true)
+					TweenService:Create(
+						ToggleCircle,
+						TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{BackgroundColor3 =PresetColor}
+					):Play()
+				else
+					ToggleCircle:TweenPosition(UDim2.new(0, 0,-0.273, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .3, true)
+					TweenService:Create(
+						ToggleCircle,
+						TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+						{BackgroundColor3 = Color3.fromRGB(255,255,255)}
+					):Play()
+				end
+                Toggled = Value
+            end
+
 			Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y)
 		end
 		
