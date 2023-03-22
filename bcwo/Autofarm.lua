@@ -7,6 +7,7 @@ local Window = Flux:Window("Lol", "BCWO", Color3.fromRGB(255, 110, 48), Enum.Key
 local Autofarm = Window:Tab("Autofarm", "http://www.roblox.com/asset/?id=6023426915")
 local Mining = Window:Tab("Mining", "http://www.roblox.com/asset/?id=6023426915")
 local Stats = Window:Tab("Stats", "http://www.roblox.com/asset/?id=6023426915")
+local Misc = Window:Tab("Misc", "http://www.roblox.com/asset/?id=6023426915")
 
 local function StopPlayerAnimations()
     if Player.Character.Animate.Disabled then return end
@@ -90,15 +91,15 @@ end
 local function InitMiningESP()
     if not workspace:FindFirstChild("Map") then Flux:Notification("No ores found", "ok lol") return false end
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        task.wait()
-        ESP:Add(Ore.Mineral, {
-            Name = Ore.Name,
-            Color = Ore.Mineral.Color,
-            IsEnabled = ShouldOreBeShown
-        })
+        if Ore:FindFirstChild("Mineral") then
+            ESP:Add(Ore.Mineral, {
+                Name = Ore.Name,
+                Color = Ore.Mineral.Color,
+                IsEnabled = ShouldOreBeShown
+            })
+        end
     end
     workspace.Map.Ores.ChildAdded:Connect(function(Ore)
-        warn("child added")
         ESP:Add(Ore:WaitForChild("Mineral"), {
             Name = Ore.Name,
             Color = Ore.Mineral.Color,
@@ -118,7 +119,7 @@ end)
 Mining:Line()
 Mining:Label("ESP blacklist", Color3.fromRGB(255, 144, 118))
 
-Mining_Info.OreBlacklist_Visual = Mining:Dropdown("Current blacklist", Mining_Info.OreBlacklist, function(Value) end)
+Mining_Info.OreBlacklist_Visual = Mining:Dropdown("Current blacklist", Mining_Info.OreBlacklist, function() end)
 Mining:Textbox("Add to blacklist", "what ores will NOT be shown", true, function(Value)
     table.insert(Mining_Info.OreBlacklist, {
         Ore = Value, 
@@ -138,8 +139,44 @@ end)
 --Stats
 
 local Stats_Info = {
-    SendWebhooks = false,
+    BiomeStats_Visual,
+    ItemsDropped_Visual,
+    AllBiomes = {},
+    ItemsDropped = {},
+    BannedColors = {
+        Color3.new(1, 1, 0),
+        Color3.new(1, 0.25, 0.25)
+    }
 }
+
+local function AddToStats(StatTable, Stat_Visual, Info)
+    local Index, HasStatInStatTable = FindIndexInsideNestedTable(StatTable, Info.Text)
+    if HasStatInStatTable then
+        StatTable[Index].Amount += 1
+        StatTable[Index].Label.Text = Info.Text .. ": " .. StatTable[Index].Amount
+    else
+        table.insert(StatTable, {
+            Amount = 0,
+            OriginalText = Info.Text,
+            Label = Stat_Visual:Add(Info.Text .. ": 0")
+        })
+        StatTable[#StatTable].Label.TextColor3 = Info.Color
+    end
+end
+
+Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, function() end)
+Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
+
+require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:connect(function(Info)
+    if not table.find(Stats_Info.BannedColors, Info.Color) then
+        if Info.Text:find("got") then
+            --AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, Info)
+        else
+            AddToStats(Stats_Info.AllBiomes, Stats_Info.BiomeStats_Visual, Info)
+        end
+    end
+end)
+
 
 while task.wait() do
     if Autofarm_Info.ShouldAutofarm then
