@@ -997,7 +997,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 			end
 
             function ToggleFunc:Set(Value)
-                if Value == false then
+                if Value then
 					ToggleCircle:TweenPosition(UDim2.new(0.37, 0,-0.273, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .3, true)
 					TweenService:Create(
 						ToggleCircle,
