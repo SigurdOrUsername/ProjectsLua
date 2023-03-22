@@ -1721,6 +1721,7 @@ function Flux:Window(text, bottom,mainclr,toclose)
 					wait(.4)
 					Container.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y)
 				end
+				return Item
 			end
 			function DropFunc:Clear()
 				Title.Text = text
