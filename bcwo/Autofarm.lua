@@ -24,7 +24,6 @@ local function IsAMob(Mob)
 end
 
 local function ChangeToolGrip(Tool, Part)
-    StopPlayerAnimations()
     if Tool:FindFirstChild("Idle") then
         Tool.Idle:Destroy()
         Tool.Grip = CFrame.new()
@@ -51,7 +50,7 @@ end
 
 local Autofarm_Info = {
     ShouldAutofarm = false,
-    RangeTable = {X = 0, Y = -20, Z = 0},
+    RangeTable = {X = 0, Y = -10, Z = 0},
     ToolName = "",
     Timer = tick(),
 }
@@ -59,10 +58,12 @@ local Autofarm_Info = {
 Autofarm:Toggle("Autofarm", "Autofarms mobs! Remember to equip your sword", false, function(Value)
     Autofarm_Info.ShouldAutofarm = Value
     Autofarm_Info.ToolName = ""
+    StopPlayerAnimations()
 end)
 
 Autofarm:Line()
 Autofarm:Label("Autofarm offset", Color3.fromRGB(255, 144, 118))
+Autofarm:Line()
 
 for Index = 1, 3 do
     local Axsis = Index == 1 and "X" or Index == 2 and "Y" or "Z"
@@ -118,6 +119,7 @@ end)
 
 Mining:Line()
 Mining:Label("ESP blacklist", Color3.fromRGB(255, 144, 118))
+Mining:Line()
 
 Mining_Info.OreBlacklist_Visual = Mining:Dropdown("Current blacklist", Mining_Info.OreBlacklist, function() end)
 Mining:Textbox("Add to blacklist", "what ores will NOT be shown", true, function(Value)
@@ -163,6 +165,9 @@ local function AddToStats(StatTable, Stat_Visual, Info)
         StatTable[#StatTable].Label.TextColor3 = Info.Color
     end
 end
+
+Stats:Label("Stats for different things", Color3.fromRGB(255, 144, 118))
+Stats:Line()
 
 Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, function() end)
 Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
