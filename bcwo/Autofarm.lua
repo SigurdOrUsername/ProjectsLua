@@ -104,8 +104,14 @@ end
 local function GetOres(AllOres, NonBlacklistedOres)
     local ValidOres = {}
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if IsRealOre(Ore) and (NonBlacklistedOres and IsOreNotInBlackList(Ore.Name) or AllOres and true) then
-            table.insert(ValidOres, Ore)
+        if IsRealOre(Ore) then
+            if NonBlacklistedOres and IsOreNotInBlackList(Ore.Name) then
+                table.insert(ValidOres, Ore)
+                continue
+            end
+            if AllOres then
+                table.insert(ValidOres, Ore)
+            end
         end
     end
     return ValidOres
@@ -277,11 +283,13 @@ while task.wait() do
         local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
         if Ores and PlayerTool then
             for Index, Ore in next, Ores do
-                while Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:IsDescendantOf(workspace) do
+                Mining_Info.ToolName = PlayerTool.Name
+                while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:FindFirstChild("Mineral") and Ore.Mineral.Transparency ~= 1 do
+                    if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(Ore) then break end --Incase user updates blacklist whilst farming
                     Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
 
-                    --Mine every 0.5 sec
-                    if tick() - Mining_Info.Timer > 0.5 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    --Mine every 0.25 sec
+                    if tick() - Mining_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
                         coroutine.wrap(function()
                             PlayerTool.RemoteFunction:InvokeServer("mine")
                         end)()
