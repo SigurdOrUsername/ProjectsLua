@@ -33,7 +33,7 @@ local function StopPlayerAnimations()
 end
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and Not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -331,12 +331,14 @@ while task.wait() do
         if RemoteFunction then
             RemoteFunction:InvokeServer("Confirm")
             syn.queue_on_teleport([[
+                warn("ok?")
                 while not game:IsLoaded() do task.wait() end
                 local Player = game:GetService("Players").LocalPlayer
                 Player.Character:WaitForChild("Animate")
                 local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
                 local Timer = tick()
-
+                warn("done")
+                
                 local function StopPlayerAnimations()
                     if Player.Character.Animate.Disabled then return end
                     for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
@@ -346,11 +348,11 @@ while task.wait() do
                     end
                     Player.Character.Animate.Enabled = false
                 end
-
+                
                 local function IsAMob(Mob)
-                    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and Not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+                    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
                 end
-
+                
                 local function ChangeToolGrip(Tool, Part)
                     if Tool:FindFirstChild("Idle") then
                         Tool.Idle:Destroy()
@@ -358,11 +360,17 @@ while task.wait() do
                         Tool.Parent = Player.Backpack
                         Tool.Parent = Player.Character
                     end
-
+                
                     Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
                     Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
                 end
-
+                
+                Player.OnTeleport:Connect(function(State)
+                    if State == Enum.TeleportState.Started then
+                        syn.queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
+                    end
+                end)
+                
                 StopPlayerAnimations()
                 while task.wait() do
                     local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
@@ -377,7 +385,7 @@ while task.wait() do
                         if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                             ToolName = PlayerTool.Name
                             while Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
-                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200, 0) * CFrame.fromOrientation(-300, 0, 0)
+                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(math.random(1, 20), 100, math.random(1, 20)) * CFrame.fromOrientation(-300, 0, 0)
                                 workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                                 ChangeToolGrip(PlayerTool, MobPrimaryPart)
                                 
