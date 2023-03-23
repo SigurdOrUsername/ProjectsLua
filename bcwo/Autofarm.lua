@@ -9,6 +9,10 @@ local Mining = Window:Tab("Mining", "http://www.roblox.com/asset/?id=6023426915"
 local Stats = Window:Tab("Stats", "http://www.roblox.com/asset/?id=6023426915")
 local Misc = Window:Tab("Misc", "http://www.roblox.com/asset/?id=6023426915")
 
+for Index, Connection in next, getconnections(Player.Idled) do
+    Connection:Disable()
+end
+
 local function StopPlayerAnimations()
     if Player.Character.Animate.Disabled then return end
     for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
@@ -56,6 +60,7 @@ local Autofarm_Info = {
 }
 
 Autofarm:Toggle("Autofarm", "Autofarms mobs! Remember to equip your sword", false, function(Value)
+    if not Value then workspace.CurrentCamera.CameraSubject = Player.Humanoid end
     Autofarm_Info.ShouldAutofarm = Value
     Autofarm_Info.ToolName = ""
     StopPlayerAnimations()
@@ -218,9 +223,9 @@ local function AddToStats(StatTable, Stat_Visual, Info)
         StatTable[Index].Label.Text = Info.Text .. ": " .. StatTable[Index].Amount
     else
         table.insert(StatTable, {
-            Amount = 0,
+            Amount = 1,
             OriginalText = Info.Text,
-            Label = Stat_Visual:Add(Info.Text .. ": 0")
+            Label = Stat_Visual:Add(Info.Text .. ": 1")
         })
         StatTable[#StatTable].Label.TextColor3 = Info.Color
     end
@@ -230,7 +235,7 @@ Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, fu
 Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
 
 require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:connect(function(Info)
-    if not table.find(Stats_Info.BannedColors, Info.Color) then
+    if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") then
         if Info.Text:find("got") then
             --AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, Info)
         else
