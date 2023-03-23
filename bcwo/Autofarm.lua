@@ -1,13 +1,22 @@
 local Player = game:GetService("Players").LocalPlayer
+local HttpService = game:GetService("HttpService")
 
 local Flux = loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/NewUiLib_NEW"))()
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/Kiriot22%20modified%20esp%20lib"))()
 
 local Window = Flux:Window("Lol", "BCWO", Color3.fromRGB(255, 110, 48), Enum.KeyCode.RightShift)
 local Autofarm = Window:Tab("Autofarm", "http://www.roblox.com/asset/?id=6023426915")
+local SpecialAutofarms = Window:Tab("Special autofarms", "http://www.roblox.com/asset/?id=6023426915")
 local Mining = Window:Tab("Mining", "http://www.roblox.com/asset/?id=6023426915")
 local Stats = Window:Tab("Stats", "http://www.roblox.com/asset/?id=6023426915")
 local Misc = Window:Tab("Misc", "http://www.roblox.com/asset/?id=6023426915")
+
+local SpecialAutofarmSettings = {}
+if not isfile("BCWO_Script.json") then
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+else
+    SpecialAutofarmSettings = HttpService:JSONDecode(readfile("BCWO_Script.json"))
+end
 
 for Index, Connection in next, getconnections(Player.Idled) do
     Connection:Disable()
@@ -24,7 +33,7 @@ local function StopPlayerAnimations()
 end
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0, Mob:FindFirstChild("HumanoidRootPart")
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and Not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -48,6 +57,25 @@ local function FindIndexInsideNestedTable(Table, Value)
         end
     end
     return nil, false
+end
+
+local function FindInBase(Name)
+    for Index, Base in next, workspace.Bases:GetChildren() do
+        for Index, BaseObject in next, Base.objects:GetChildren() do
+            if BaseObject.Name == Name then
+                return BaseObject, BaseObject:FindFirstChild("RemoteFunction")
+            end
+        end
+    end
+end
+
+local function ReplaceDropdownInfo(Dropdown, Table)
+    Dropdown:Clear()
+    for Index, Value in next, Table do
+        if Value:IsA("Tool") then
+            Dropdown:Add(Value.Name)
+        end
+    end
 end
 
 --Autofarm
@@ -76,6 +104,28 @@ for Index = 1, 3 do
         Autofarm_Info.RangeTable[Axsis] = Value
     end)
 end
+
+--Special autofarms
+
+local SpecialAutofarms_Info = {
+    WeaponToUse_Visual,
+}
+
+SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to use", {}, function(Value)
+    SpecialAutofarmSettings.WeaponToUse = Value
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+end)
+ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
+SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use' autofarm to whats in your inventory", function()
+    ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
+end)
+SpecialAutofarms:Line()
+
+SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of riches for you", SpecialAutofarmSettings.TORAutofarm or false, function(Value)
+    if not FindInBase("khrysosteleporter") then return Flux:Notification("No Khrysos teleporter-pad was found", "ok lol") end
+    SpecialAutofarmSettings.TORAutofarm = Value
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+end)
 
 --Mining
 
@@ -244,7 +294,6 @@ require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:con
     end
 end)
 
-
 while task.wait() do
     if Autofarm_Info.ShouldAutofarm then
         --Transfer tool to char if in backpack
@@ -265,7 +314,7 @@ while task.wait() do
                     ChangeToolGrip(PlayerTool, MobPrimaryPart)
                     
                     --Attack mobs every 0.25 sec
-                    if tick() - Autofarm_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    if tick() - Autofarm_Info.Timer > 0.25 then
                         coroutine.wrap(function()
                             PlayerTool.RemoteFunction:InvokeServer("hit", {})
                         end)()
@@ -274,6 +323,78 @@ while task.wait() do
                     task.wait()
                 end
             end
+        end
+    end
+
+    if SpecialAutofarmSettings.TORAutofarm then
+        local TorTeleporter, RemoteFunction = FindInBase("khrysosteleporter")
+        if RemoteFunction then
+            RemoteFunction:InvokeServer("Confirm")
+            syn.queue_on_teleport([[
+                while not game:IsLoaded() do task.wait() end
+                local Player = game:GetService("Players").LocalPlayer
+                Player.Character:WaitForChild("Animate")
+                local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
+                local Timer = tick()
+
+                local function StopPlayerAnimations()
+                    if Player.Character.Animate.Disabled then return end
+                    for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
+                        if tostring(Track) ~= "toolnone" then
+                            Track:Stop()
+                        end
+                    end
+                    Player.Character.Animate.Enabled = false
+                end
+
+                local function IsAMob(Mob)
+                    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and Not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+                end
+
+                local function ChangeToolGrip(Tool, Part)
+                    if Tool:FindFirstChild("Idle") then
+                        Tool.Idle:Destroy()
+                        Tool.Grip = CFrame.new()
+                        Tool.Parent = Player.Backpack
+                        Tool.Parent = Player.Character
+                    end
+
+                    Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
+                    Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
+                end
+
+                StopPlayerAnimations()
+                while task.wait() do
+                    local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
+                    if IsInBackpack then
+                        StopPlayerAnimations()
+                        IsInBackpack.Parent = Player.Character
+                    end
+                    
+                    for Index, Mob in next, workspace:GetChildren() do
+                        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+                        local IsMob, MobPrimaryPart = IsAMob(Mob)
+                        if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
+                            ToolName = PlayerTool.Name
+                            while Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
+                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200, 0) * CFrame.fromOrientation(-300, 0, 0)
+                                workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
+                                ChangeToolGrip(PlayerTool, MobPrimaryPart)
+                                
+                                --Attack mobs every 0.25 sec
+                                if tick() - Timer > 0.25 then
+                                    coroutine.wrap(function()
+                                        PlayerTool.RemoteFunction:InvokeServer("hit", {})
+                                    end)()
+                                    Timer = tick()
+                                end
+                                task.wait()
+                            end
+                        end
+                    end
+                end
+            ]])
+            break
         end
     end
 
@@ -294,7 +415,7 @@ while task.wait() do
                     Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
 
                     --Mine every 0.25 sec
-                    if tick() - Mining_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    if tick() - Mining_Info.Timer > 0.25 then
                         coroutine.wrap(function()
                             PlayerTool.RemoteFunction:InvokeServer("mine")
                         end)()
