@@ -1,3 +1,4 @@
+while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
 local HttpService = game:GetService("HttpService")
 
@@ -332,6 +333,35 @@ while task.wait() do
         end
     end
 
+    if Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres then
+        --Transfer tool to char if in backpack
+        local IsInBackpack = Player.Backpack:FindFirstChild(Mining_Info.ToolName)
+        if IsInBackpack then
+            IsInBackpack.Parent = Player.Character
+        end
+
+        local Ores = GetOres(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
+        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+        if Ores and PlayerTool then
+            for Index, Ore in next, Ores do
+                Mining_Info.ToolName = PlayerTool.Name
+                while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:FindFirstChild("Mineral") and Ore.Mineral.Transparency ~= 1 do
+                    if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(Ore) then break end --Incase user updates blacklist whilst farming
+                    Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
+
+                    --Mine every 0.25 sec
+                    if tick() - Mining_Info.Timer > 0.25 then
+                        coroutine.wrap(function()
+                            PlayerTool.RemoteFunction:InvokeServer("mine")
+                        end)()
+                        Mining_Info.Timer = tick()
+                    end
+                    task.wait()
+                end
+            end
+        end
+    end
+
     if SpecialAutofarmSettings.TORAutofarm then
         local TorTeleporter, RemoteFunction = FindInBase("khrysosteleporter")
         if RemoteFunction then
@@ -421,35 +451,6 @@ while task.wait() do
                 end
             ]])
             break
-        end
-    end
-
-    if Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres then
-        --Transfer tool to char if in backpack
-        local IsInBackpack = Player.Backpack:FindFirstChild(Mining_Info.ToolName)
-        if IsInBackpack then
-            IsInBackpack.Parent = Player.Character
-        end
-
-        local Ores = GetOres(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
-        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
-        if Ores and PlayerTool then
-            for Index, Ore in next, Ores do
-                Mining_Info.ToolName = PlayerTool.Name
-                while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:FindFirstChild("Mineral") and Ore.Mineral.Transparency ~= 1 do
-                    if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(Ore) then break end --Incase user updates blacklist whilst farming
-                    Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
-
-                    --Mine every 0.25 sec
-                    if tick() - Mining_Info.Timer > 0.25 then
-                        coroutine.wrap(function()
-                            PlayerTool.RemoteFunction:InvokeServer("mine")
-                        end)()
-                        Mining_Info.Timer = tick()
-                    end
-                    task.wait()
-                end
-            end
         end
     end
 end
