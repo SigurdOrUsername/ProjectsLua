@@ -337,12 +337,10 @@ while task.wait() do
         if RemoteFunction then
             RemoteFunction:InvokeServer("Confirm")
             syn.queue_on_teleport([[
-                print("ok")
                 while not game:IsLoaded() do task.wait() end
                 local Player = game:GetService("Players").LocalPlayer
                 while Player.Character == nil do task.wait() end
                 while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
-                warn("yes")
                 
                 local YSafetyOffset = 0
                 local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
@@ -385,7 +383,7 @@ while task.wait() do
                 end)
                 
                 StopPlayerAnimations()
-                syn.queue_on_teleport('print("yes lmao") loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
+                syn.queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
                 
                 while task.wait() do
                     local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
