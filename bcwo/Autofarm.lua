@@ -116,9 +116,11 @@ SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to 
     SpecialAutofarmSettings.WeaponToUse = Value
     writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
 end)
-ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
+ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player:WaitForChild("Backpack"):GetChildren())
 SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use' autofarm to whats in your inventory", function()
-    ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
+    if Player:FindFirstChild("Backpack") then
+        ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
+    end
 end)
 SpecialAutofarms:Line()
 
@@ -299,10 +301,12 @@ end)
 while task.wait() do
     if Autofarm_Info.ShouldAutofarm then
         --Transfer tool to char if in backpack
-        local IsInBackpack = Player.Backpack:FindFirstChild(Autofarm_Info.ToolName)
-        if IsInBackpack then
-            StopPlayerAnimations()
-            IsInBackpack.Parent = Player.Character
+        if Player:FindFirstChild("Backpack") then
+            local IsInBackpack = Player.Backpack:FindFirstChild(Autofarm_Info.ToolName)
+            if IsInBackpack then
+                StopPlayerAnimations()
+                IsInBackpack.Parent = Player.Character
+            end
         end
 
         for Index, Mob in next, workspace:GetChildren() do
@@ -310,7 +314,7 @@ while task.wait() do
             local IsMob, MobPrimaryPart = IsAMob(Mob)
             if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                 Autofarm_Info.ToolName = PlayerTool.Name
-                while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
+                while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
                     workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                     ChangeToolGrip(PlayerTool, MobPrimaryPart)
@@ -335,9 +339,11 @@ while task.wait() do
 
     if Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres then
         --Transfer tool to char if in backpack
-        local IsInBackpack = Player.Backpack:FindFirstChild(Mining_Info.ToolName)
-        if IsInBackpack then
-            IsInBackpack.Parent = Player.Character
+        if Player:FindFirstChild("Backpack") then
+            local IsInBackpack = Player.Backpack:FindFirstChild(Mining_Info.ToolName)
+            if IsInBackpack then
+                IsInBackpack.Parent = Player.Character
+            end
         end
 
         local Ores = GetOres(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
@@ -416,10 +422,12 @@ while task.wait() do
                 syn.queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
                 
                 while task.wait() do
-                    local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
-                    if IsInBackpack then
-                        StopPlayerAnimations()
-                        IsInBackpack.Parent = Player.Character
+                    if Player:FindFirstChild("Backpack") then
+                        local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
+                        if IsInBackpack then
+                            StopPlayerAnimations()
+                            IsInBackpack.Parent = Player.Character
+                        end
                     end
                     
                     for Index, Mob in next, workspace:GetChildren() do
@@ -427,7 +435,7 @@ while task.wait() do
                         local IsMob, MobPrimaryPart = IsAMob(Mob)
                         if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                             ToolName = PlayerTool.Name
-                            while Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
+                            while Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
                                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
                                 workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                                 ChangeToolGrip(PlayerTool, MobPrimaryPart)
