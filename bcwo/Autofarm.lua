@@ -35,7 +35,7 @@ local function StopPlayerAnimations()
 end
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob.PrimaryPart or Mob:FindFirstChild("HumanoidRootPart")
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -104,7 +104,7 @@ local Autofarm_Info = {
 }
 
 Autofarm:Toggle("Autofarm", "Autofarms mobs! Remember to equip your sword", false, function(Value)
-    if not Value then workspace.CurrentCamera.CameraSubject = Player.Humanoid end
+    if not Value then workspace.CurrentCamera.CameraSubject = Player.Character.Humanoid end
     Autofarm_Info.ShouldAutofarm = Value
     Autofarm_Info.ToolName = ""
     StopPlayerAnimations()
@@ -142,8 +142,8 @@ SpecialAutofarms:Line()
 
 SpecialAutofarms_Info.CountdownBeforeTeleporting_Visual = SpecialAutofarms:Label("Will teleport in: 5")
 SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of riches for you", SpecialAutofarmSettings.TORAutofarm or false, function(Value)
-    if not FindInBase("khrysosteleporter") then return Flux:Notification("No Khrysos teleporter-pad was found", "ok lol") end
-    if not SpecialAutofarmSettings.WeaponToUse then return Flux:Notification("No weapon set") end
+    --if not FindInBase("khrysosteleporter") then return Flux:Notification("No Khrysos teleporter-pad was found", "ok lol") end
+    --if not SpecialAutofarmSettings.WeaponToUse then return Flux:Notification("No weapon set") end
     SpecialAutofarmSettings.TORAutofarm = Value
     writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
 end)
@@ -306,7 +306,7 @@ Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, fu
 Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
 
 require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:connect(function(Info)
-    if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") then
+    if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") and not Info.Text:find("Travelling Merchant") then
         if Info.Text:find("got") then
             --AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, Info)
         else
