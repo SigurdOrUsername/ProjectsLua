@@ -1,4 +1,4 @@
-print("V: 1.0.0")
+print("V: 1.0.1")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -37,7 +37,7 @@ local function StopPlayerAnimations()
 end
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob.PrimaryPart or Mob:FindFirstChild("HumanoidRootPart")
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"),  Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
 end
 
 local function ChangeToolGrip(Tool, Part)
