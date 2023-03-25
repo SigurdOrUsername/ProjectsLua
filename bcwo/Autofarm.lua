@@ -1,4 +1,4 @@
-print("V: 1.0.1")
+print("V: 1.0.3 BASILISK")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -36,8 +36,13 @@ local function StopPlayerAnimations()
     Player.Character.Animate.Enabled = false
 end
 
+local SpecialMobCases = {
+    ["Basilisk"] = "Head"
+}
+
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"),  Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
+    if SpecialMobCases[Mob.Name] then return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild(SpecialMobCases[Mob.Name]) end
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -396,6 +401,7 @@ while task.wait() do
                 ExecuteWhenTeleport([[
                     while not game:IsLoaded() do task.wait() end
                     local Player = game:GetService("Players").LocalPlayer
+                    local ReplicatedStorage = game:GetService("ReplicatedStorage")
                     local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
                     while Player.Character == nil do task.wait() end
                     while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
@@ -440,6 +446,7 @@ while task.wait() do
                         end
                     end)
                     
+                    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
                     StopPlayerAnimations()
                     ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
                     
