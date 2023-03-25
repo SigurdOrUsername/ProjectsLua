@@ -1,3 +1,5 @@
+print("V: 1.0.0")
+
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
 local HttpService = game:GetService("HttpService")
