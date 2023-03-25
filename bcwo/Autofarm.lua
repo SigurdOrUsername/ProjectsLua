@@ -1,4 +1,4 @@
-print("V: 1.0.3 BASILISK")
+print("V: 1.0.4 TOR FIX")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -405,11 +405,11 @@ while task.wait() do
                     local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
                     while Player.Character == nil do task.wait() end
                     while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
-                    
+
                     local YSafetyOffset = 0
                     local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
                     local Timer = tick()
-                    
+
                     local function StopPlayerAnimations()
                         if Player.Character.Animate.Disabled then return end
                         for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
@@ -419,11 +419,11 @@ while task.wait() do
                         end
                         Player.Character.Animate.Enabled = false
                     end
-                    
+
                     local function IsAMob(Mob)
                         return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
                     end
-                    
+
                     local function ChangeToolGrip(Tool, Part)
                         if Tool:FindFirstChild("Idle") then
                             Tool.Idle:Destroy()
@@ -431,11 +431,11 @@ while task.wait() do
                             Tool.Parent = Player.Backpack
                             Tool.Parent = Player.Character
                         end
-                    
+
                         Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
                         Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
                     end
-                    
+
                     coroutine.wrap(function()
                         while task.wait() do
                             if (Player.Character.Humanoid.Health/Player.Character.Humanoid.MaxHealth)*100 < 20 then
@@ -445,11 +445,12 @@ while task.wait() do
                             end
                         end
                     end)
-                    
-                    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
+
                     StopPlayerAnimations()
                     ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
-                    
+                    task.wait(5)
+                    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
+
                     while task.wait() do
                         if Player:FindFirstChild("Backpack") then
                             local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
