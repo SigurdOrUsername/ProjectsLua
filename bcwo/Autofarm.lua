@@ -1,4 +1,4 @@
-print("V: 1.0.4 TOR FIX")
+print("V: 1.0.5 SAVING BLACKLIST")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -15,11 +15,15 @@ local Mining = Window:Tab("Mining", "http://www.roblox.com/asset/?id=6023426915"
 local Stats = Window:Tab("Stats", "http://www.roblox.com/asset/?id=6023426915")
 local Misc = Window:Tab("Misc", "http://www.roblox.com/asset/?id=6023426915")
 
-local SpecialAutofarmSettings = {}
+local SavedInformation = {OreBlacklist={}}
 if not isfile("BCWO_Script.json") then
-    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 else
-    SpecialAutofarmSettings = HttpService:JSONDecode(readfile("BCWO_Script.json"))
+    SavedInformation = HttpService:JSONDecode(readfile("BCWO_Script.json"))
+end
+
+if not SavedInformation.OreBlacklist then
+    Player:Kick("delete BCWO_Script.json in your workspace folder and rejoin")
 end
 
 for Index, Connection in next, getconnections(Player.Idled) do
@@ -41,8 +45,7 @@ local SpecialMobCases = {
 }
 
 local function IsAMob(Mob)
-    if SpecialMobCases[Mob.Name] then return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild(SpecialMobCases[Mob.Name]) end
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso) or SpecialMobCases[Mob.Name]
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -90,7 +93,7 @@ end
 local function StartCountdown(TextLabel, Time)
     for Index = Time, 0, -1 do
         TextLabel.Text = "Will teleport in: " .. Index
-        if not SpecialAutofarmSettings.TORAutofarm then
+        if not SavedInformation.TORAutofarm then
             TextLabel.Text = "CANCELLED THE TELEPORT"
             task.wait(1)
             TextLabel.Text = "Will teleport in: 10"
@@ -136,8 +139,8 @@ local SpecialAutofarms_Info = {
 }
 
 SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to use", {}, function(Value)
-    SpecialAutofarmSettings.WeaponToUse = Value
-    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+    SavedInformation.WeaponToUse = Value
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 end)
 ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player:WaitForChild("Backpack"):GetChildren())
 SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use' autofarm to whats in your inventory", function()
@@ -148,11 +151,11 @@ end)
 SpecialAutofarms:Line()
 
 SpecialAutofarms_Info.CountdownBeforeTeleporting_Visual = SpecialAutofarms:Label("Will teleport in: 5")
-SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of riches for you", SpecialAutofarmSettings.TORAutofarm or false, function(Value)
+SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of riches for you", SavedInformation.TORAutofarm or false, function(Value)
     --if not FindInBase("khrysosteleporter") then return Flux:Notification("No Khrysos teleporter-pad was found", "ok lol") end
-    --if not SpecialAutofarmSettings.WeaponToUse then return Flux:Notification("No weapon set") end
-    SpecialAutofarmSettings.TORAutofarm = Value
-    writefile("BCWO_Script.json", HttpService:JSONEncode(SpecialAutofarmSettings))
+    --if not SavedInformation.WeaponToUse then return Flux:Notification("No weapon set") end
+    SavedInformation.TORAutofarm = Value
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 end)
 
 --Mining
@@ -233,17 +236,31 @@ Mining:Label("ESP blacklist (and farm blacklist)", Color3.fromRGB(255, 144, 118)
 Mining:Line()
 
 Mining_Info.OreBlacklist_Visual = Mining:Dropdown("Current blacklist", Mining_Info.OreBlacklist, function() end)
+
+for Index, Ore in next, SavedInformation.OreBlacklist do
+    table.insert(Mining_Info.OreBlacklist, {
+        Ore = Ore, 
+        Blacklisted_Visual = Mining_Info.OreBlacklist_Visual:Add(Ore)
+    })
+end
+
 Mining:Textbox("Add to blacklist", "what ores will NOT be shown", true, function(Value)
     table.insert(Mining_Info.OreBlacklist, {
         Ore = Value, 
         Blacklisted_Visual = Mining_Info.OreBlacklist_Visual:Add(Value)
     })
+
+    table.insert(SavedInformation.OreBlacklist, Value)
+    writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 end)
 Mining:Textbox("Remove from blacklist", "Removes ores from the blacklist", true, function(Value)
     local BlacklistIndex, FoundOreInBlacklist = FindIndexInsideNestedTable(Mining_Info.OreBlacklist, Value)
     if FoundOreInBlacklist then
         Mining_Info.OreBlacklist_Visual:Remove(Mining_Info.OreBlacklist[BlacklistIndex].Blacklisted_Visual)
         Mining_Info.OreBlacklist[BlacklistIndex] = nil
+
+        table.remove(SavedInformation.OreBlacklist, BlacklistIndex)
+        writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
     else
         return Flux:Notification("Did not find " .. Value .. " in the blacklist", "ok lol")
     end
@@ -392,7 +409,7 @@ while task.wait() do
         end
     end
 
-    if SpecialAutofarmSettings.TORAutofarm then
+    if SavedInformation.TORAutofarm then
         local TorTeleporter, RemoteFunction = FindInBase("khrysosteleporter")
         if RemoteFunction then
             local DoTeleport = StartCountdown(SpecialAutofarms_Info.CountdownBeforeTeleporting_Visual, 5)
