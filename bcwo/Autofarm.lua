@@ -1,4 +1,4 @@
-print("V: 1.0.7")
+print("V: 1.0.7.5")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -190,7 +190,7 @@ end
 local function GetOres(AllOres, NonBlacklistedOres)
     local ValidOres = {}
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if IsRealOre(Ore) then
+        if Ore:FindFirstChild("Mineral") and IsRealOre(Ore) then
             if NonBlacklistedOres and IsOreNotInBlackList(Ore.Name) then
                 table.insert(ValidOres, Ore)
                 continue
@@ -206,7 +206,7 @@ end
 local function InitMiningESP()
     if not workspace:FindFirstChild("Map") then Flux:Notification("No ores found", "ok lol") return false end
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if IsRealOre(Ore) then
+        if Ore:FindFirstChild("Mineral") and IsRealOre(Ore) then
             ESP:Add(Ore.Mineral, {
                 Name = Ore.Name,
                 Color = Ore.Mineral.Color,
