@@ -1,4 +1,4 @@
-print("V: 1.0.6")
+print("V: 1.0.7")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -330,12 +330,20 @@ Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, fu
 Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
 
 require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:connect(function(Info)
-    if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") and not Info.Text:find("Travelling Merchant") then
-        if Info.Text:find("got") then
-            --AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, Info)
-        else
-            AddToStats(Stats_Info.AllBiomes, Stats_Info.BiomeStats_Visual, Info)
-        end
+    if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") and not Info.Text:find("Travelling Merchant") and not Info.Text:find("got") then
+        AddToStats(Stats_Info.AllBiomes, Stats_Info.BiomeStats_Visual, Info)
+    end
+end)
+Player.PlayerScripts.ClientControl.Event:Connect(function(Info)
+    local Amount = Info.msg:match("%d")
+    local Matched = Info.msg:match("got%s(%b" .. Amount .. "!)")
+    local ItemGot = Matched:sub(3, #Matched - 1)
+
+    for Index = 1, Amount do
+        AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, {
+            Text = ItemGot,
+            Color = Color3.fromRGB(255, 255, 255)
+        })
     end
 end)
 
