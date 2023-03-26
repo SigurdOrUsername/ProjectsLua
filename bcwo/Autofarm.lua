@@ -1,4 +1,4 @@
-print("V: 1.0.5 SAVING BLACKLIST")
+print("V: 1.0.6")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -45,7 +45,7 @@ local SpecialMobCases = {
 }
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso) or SpecialMobCases[Mob.Name]
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), SpecialMobCases[Mob.Name] or Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -356,6 +356,7 @@ while task.wait() do
             if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                 Autofarm_Info.ToolName = PlayerTool.Name
                 while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
+                    local _, MobPrimaryPart = IsAMob(Mob)
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
                     workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                     ChangeToolGrip(PlayerTool, MobPrimaryPart)
