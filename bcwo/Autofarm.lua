@@ -1,4 +1,4 @@
-print("V: 1.0.8")
+print("V: 1.1.0 EASTER UPDATE")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -33,15 +33,14 @@ end
 local function StopPlayerAnimations()
     if Player.Character.Animate.Disabled then return end
     for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
-        if tostring(Track) ~= "toolnone" then
-            Track:Stop()
-        end
+        Track:Stop()
     end
     Player.Character.Animate.Enabled = false
 end
 
 local SpecialMobCases = {
-    ["Basilisk"] = "Head"
+    ["Basilisk"] = "Head",
+    ["Atlas"] = "Head"
 }
 
 local function IsAMob(Mob)
@@ -73,9 +72,11 @@ end
 
 local function FindInBase(Name)
     for Index, Base in next, workspace.Bases:GetChildren() do
-        for Index, BaseObject in next, Base.objects:GetChildren() do
-            if BaseObject.Name == Name then
-                return BaseObject, BaseObject:FindFirstChild("RemoteFunction")
+        if Base.owner.Value == Player then
+            for Index, BaseObject in next, Base.objects:GetChildren() do
+                if BaseObject.Name == Name then
+                    return BaseObject, BaseObject:FindFirstChild("RemoteFunction")
+                end
             end
         end
     end
@@ -90,20 +91,6 @@ local function ReplaceDropdownInfo(Dropdown, Table)
     end
 end
 
-local function StartCountdown(TextLabel, Time)
-    for Index = Time, 0, -1 do
-        TextLabel.Text = "Will teleport in: " .. Index
-        if not SavedInformation.TORAutofarm then
-            TextLabel.Text = "CANCELLED THE TELEPORT"
-            task.wait(1)
-            TextLabel.Text = "Will teleport in: 10"
-            return false
-        end
-        task.wait(1)
-    end
-    return true
-end
-
 --Autofarm
 
 local Autofarm_Info = {
@@ -113,8 +100,9 @@ local Autofarm_Info = {
     Timer = tick(),
 }
 
-Autofarm:Toggle("Autofarm", "Autofarms mobs! Remember to equip your sword", false, function(Value)
+Autofarm:Toggle("Autofarm", "Autofarms mobs! Remember to equip your sword AFTER enabling this", false, function(Value)
     if not Value then workspace.CurrentCamera.CameraSubject = Player.Character.Humanoid end
+    if Value and Player.Character:FindFirstChildWhichIsA("Tool") then Player.Character:FindFirstChildWhichIsA("Tool").Parent = Player.Backpack end
     Autofarm_Info.ShouldAutofarm = Value
     Autofarm_Info.ToolName = ""
     StopPlayerAnimations()
@@ -134,8 +122,8 @@ end
 --Special autofarms
 
 local SpecialAutofarms_Info = {
+    AutofarmEggs = false,
     WeaponToUse_Visual,
-    CountdownBeforeTeleporting_Visual,
 }
 
 SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to use", {}, function(Value)
@@ -148,12 +136,15 @@ SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use' auto
         ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
     end
 end)
+
 SpecialAutofarms:Line()
 
-SpecialAutofarms_Info.CountdownBeforeTeleporting_Visual = SpecialAutofarms:Label("Will teleport in: 5")
 SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of riches for you", SavedInformation.TORAutofarm or false, function(Value)
     SavedInformation.TORAutofarm = Value
     writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
+end)
+SpecialAutofarms:Toggle("Autofarm eggs (easter event)", "Auto collects the eggs that spawn during the easter event", false, function(Value)
+    SpecialAutofarms_Info.AutofarmEggs = Value
 end)
 
 --Mining
@@ -172,7 +163,12 @@ local Mining_Info = {
 }
 
 local function IsRealOre(Ore)
-    return Ore.Mineral.Position.X > -2000 and Ore.Mineral.Position.Y < 1000
+    for Index, OreSpawn in next, workspace.Map.OreSpots:GetChildren() do
+        if OreSpawn:IsA("Part") and math.round(OreSpawn.CFrame.Y) == math.round(Ore.Mineral.CFrame.Y) then
+            return true
+        end
+    end
+    return false
 end
 
 local function IsOreNotInBlackList(Ore)
@@ -199,6 +195,18 @@ local function GetOres(AllOres, NonBlacklistedOres)
         end
     end
     return ValidOres
+end
+
+local function GetClosestOre(AllOres, NonBlacklistedOres)
+    local LastMatched = math.huge
+    local Closest
+    for Index, Ore in next, GetOres(AllOres, NonBlacklistedOres) do
+        if (Player.Character.HumanoidRootPart.Position - Ore.Mineral.Position).Magnitude < LastMatched then
+            LastMatched = (Player.Character.HumanoidRootPart.Position - Ore.Mineral.Position).Magnitude
+            Closest = Ore
+        end
+    end
+    return Closest
 end
 
 local function InitMiningESP()
@@ -367,7 +375,7 @@ while task.wait() do
                     ChangeToolGrip(PlayerTool, MobPrimaryPart)
                     
                     --Attack mobs every 0.25 sec
-                    if tick() - Autofarm_Info.Timer > 0.25 then
+                    if tick() - Autofarm_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
                         coroutine.wrap(function()
                             PlayerTool.RemoteFunction:InvokeServer("hit", {
                                 MobPrimaryPart.Position,
@@ -393,24 +401,30 @@ while task.wait() do
             end
         end
 
-        local Ores = GetOres(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
+        local ClosestOre = GetClosestOre(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
         local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
-        if Ores and PlayerTool then
-            for Index, Ore in next, Ores do
-                Mining_Info.ToolName = PlayerTool.Name
-                while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and Ore:FindFirstChild("Mineral") and Ore.Mineral.Transparency ~= 1 do
-                    if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(Ore) then break end --Incase user updates blacklist whilst farming
-                    Player.Character.HumanoidRootPart.CFrame = Ore.Mineral.CFrame
+        if ClosestOre and PlayerTool then
+            Mining_Info.ToolName = PlayerTool.Name
+            while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and ClosestOre:FindFirstChild("Mineral") and ClosestOre.Mineral.Transparency ~= 1 do
+                if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(ClosestOre) then break end --Incase user updates blacklist whilst farming
+                Player.Character.HumanoidRootPart.CFrame = ClosestOre.Mineral.CFrame    
 
-                    --Mine every 0.25 sec
-                    if tick() - Mining_Info.Timer > 0.25 then
-                        coroutine.wrap(function()
-                            PlayerTool.RemoteFunction:InvokeServer("mine")
-                        end)()
-                        Mining_Info.Timer = tick()
-                    end
-                    task.wait()
+                --Mine every 0.25 sec
+                if tick() - Mining_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    coroutine.wrap(function()
+                        PlayerTool.RemoteFunction:InvokeServer("mine")
+                    end)()
+                    Mining_Info.Timer = tick()
                 end
+                task.wait()
+            end
+        end
+    end
+
+    if SpecialAutofarms_Info.AutofarmEggs then
+        for Index, Egg in next, workspace:GetChildren() do
+            if Player.Character:FindFirstChild("HumanoidRootPart") and Egg.Name == "Egg" then
+                firetouchinterest(Egg, Player.Character.HumanoidRootPart, 0)
             end
         end
     end
@@ -418,101 +432,98 @@ while task.wait() do
     if SavedInformation.TORAutofarm then
         local TorTeleporter, RemoteFunction = FindInBase("khrysosteleporter")
         if RemoteFunction then
-            local DoTeleport = StartCountdown(SpecialAutofarms_Info.CountdownBeforeTeleporting_Visual, 5)
-            if DoTeleport then
-                RemoteFunction:InvokeServer("Confirm")
-                ExecuteWhenTeleport([[
-                    while not game:IsLoaded() do task.wait() end
-                    local Player = game:GetService("Players").LocalPlayer
-                    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-                    local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
-                    while Player.Character == nil do task.wait() end
-                    while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
-
-                    local YSafetyOffset = 0
-                    local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
-                    local Timer = tick()
-
-                    local function StopPlayerAnimations()
-                        if Player.Character.Animate.Disabled then return end
-                        for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
-                            if tostring(Track) ~= "toolnone" then
-                                Track:Stop()
-                            end
+            RemoteFunction:InvokeServer("Confirm")
+            ExecuteWhenTeleport([[
+                while not game:IsLoaded() do task.wait() end
+                local Player = game:GetService("Players").LocalPlayer
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
+                while Player.Character == nil do task.wait() end
+                while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
+                
+                local YSafetyOffset = 0
+                local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
+                local Timer = tick()
+                
+                local function StopPlayerAnimations()
+                    if Player.Character.Animate.Disabled then return end
+                    for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
+                        if tostring(Track) ~= "toolnone" then
+                            Track:Stop()
                         end
-                        Player.Character.Animate.Enabled = false
                     end
-
-                    local function IsAMob(Mob)
-                        return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+                    Player.Character.Animate.Enabled = false
+                end
+                
+                local function IsAMob(Mob)
+                    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
+                end
+                
+                local function ChangeToolGrip(Tool, Part)
+                    if Tool:FindFirstChild("Idle") then
+                        Tool.Idle:Destroy()
+                        Tool.Grip = CFrame.new()
+                        Tool.Parent = Player.Backpack
+                        Tool.Parent = Player.Character
                     end
-
-                    local function ChangeToolGrip(Tool, Part)
-                        if Tool:FindFirstChild("Idle") then
-                            Tool.Idle:Destroy()
-                            Tool.Grip = CFrame.new()
-                            Tool.Parent = Player.Backpack
-                            Tool.Parent = Player.Character
-                        end
-
-                        Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
-                        Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
-                    end
-
-                    coroutine.wrap(function()
-                        while task.wait() do
-                            if (Player.Character.Humanoid.Health/Player.Character.Humanoid.MaxHealth)*100 < 20 then
-                                YSafetyOffset = 1000
-                            else
-                                YSafetyOffset = 0
-                            end
-                        end
-                    end)
-
-                    StopPlayerAnimations()
-                    ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
-                    task.wait(5)
-                    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
-
+                
+                    Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
+                    Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
+                end
+                
+                coroutine.wrap(function()
                     while task.wait() do
-                        if Player:FindFirstChild("Backpack") then
-                            local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
-                            if IsInBackpack then
-                                StopPlayerAnimations()
-                                IsInBackpack.Parent = Player.Character
-                            end
+                        if (Player.Character.Humanoid.Health/Player.Character.Humanoid.MaxHealth)*100 < 20 then
+                            YSafetyOffset = 1000
+                        else
+                            YSafetyOffset = 0
                         end
-                        
-                        for Index, Mob in next, workspace:GetChildren() do
-                            local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
-                            local IsMob, MobPrimaryPart = IsAMob(Mob)
-                            if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
-                                ToolName = PlayerTool.Name
-                                while Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
-                                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
-                                    workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
-                                    ChangeToolGrip(PlayerTool, MobPrimaryPart)
-                                    
-                                    --Attack mobs every 0.25 sec
-                                    if tick() - Timer > 0.25 then
-                                        coroutine.wrap(function()
-                                            PlayerTool.RemoteFunction:InvokeServer("hit", {
-                                                MobPrimaryPart.Position,
-                                                1,
-                                                1,
-                                                1
-                                            })
-                                        end)()
-                                        Timer = tick()
-                                    end
-                                    task.wait()
+                    end
+                end)
+                
+                StopPlayerAnimations()
+                ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
+                task.wait(5)
+                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
+                
+                while task.wait() do
+                    if Player:FindFirstChild("Backpack") then
+                        local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
+                        if IsInBackpack then
+                            StopPlayerAnimations()
+                            IsInBackpack.Parent = Player.Character
+                        end
+                    end
+                    
+                    for Index, Mob in next, workspace:GetChildren() do
+                        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+                        local IsMob, MobPrimaryPart = IsAMob(Mob)
+                        if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
+                            ToolName = PlayerTool.Name
+                            while Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
+                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
+                                workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
+                                ChangeToolGrip(PlayerTool, MobPrimaryPart)
+                                
+                                --Attack mobs every 0.25 sec
+                                if tick() - Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
+                                    coroutine.wrap(function()
+                                        PlayerTool.RemoteFunction:InvokeServer("hit", {
+                                            MobPrimaryPart.Position,
+                                            1,
+                                            1,
+                                            1
+                                        })
+                                    end)()
+                                    Timer = tick()
                                 end
+                                task.wait()
                             end
                         end
                     end
-                ]])
-                break
-            end
+                end
+            ]])
+            break
         end
     end
 end
