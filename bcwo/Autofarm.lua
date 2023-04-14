@@ -122,7 +122,7 @@ end
 --Special autofarms
 
 local SpecialAutofarms_Info = {
-    AutofarmEggs = false,
+    AutofarmEggs = true,
     WeaponToUse_Visual,
 }
 
@@ -143,7 +143,7 @@ SpecialAutofarms:Toggle("Khrysos temple autofarm", "Will autofarm the tower of r
     SavedInformation.TORAutofarm = Value
     writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 end)
-SpecialAutofarms:Toggle("Autofarm eggs (easter event)", "Auto collects the eggs that spawn during the easter event", false, function(Value)
+SpecialAutofarms:Toggle("Autofarm eggs (easter event)", "Auto collects the eggs that spawn during the easter event", true, function(Value)
     SpecialAutofarms_Info.AutofarmEggs = Value
 end)
 
@@ -153,6 +153,7 @@ local Mining_Info = {
     Init = false,
     OreBlacklist_Visual,
     OreBlacklist = {},
+    HasRemovedFalseOres = false,
 
     ToolName = "",
     Timer = tick(),
@@ -162,13 +163,20 @@ local Mining_Info = {
     FarmNonBlacklistedOres = false,
 }
 
-local function IsRealOre(Ore)
-    for Index, OreSpawn in next, workspace.Map.OreSpots:GetChildren() do
-        if OreSpawn:IsA("Part") and math.round(OreSpawn.CFrame.Y) == math.round(Ore.Mineral.CFrame.Y) then
-            return true
+local function RemoveFalseOres()
+    local StoredOreNames = {}
+    for Index, Ore in next, workspace.Map.Ores:GetChildren() do
+        if not table.find(StoredOreNames, Ore.Name) then
+            Ore:Destroy()
+            table.insert(StoredOreNames, Ore.Name)
         end
     end
-    return false
+end
+
+local function IsRealOre(Ore)
+    if not Ore:FindFirstChild("Mineral") then return false end
+    if Ore.Mineral.Transparency > 0.5 then return false end
+    return true
 end
 
 local function IsOreNotInBlackList(Ore)
@@ -181,15 +189,17 @@ local function IsOreNotInBlackList(Ore)
     return true
 end
 
-local function GetOres(AllOres, NonBlacklistedOres)
+local function GetOres()
+    if not Mining_Info.HasRemovedFalseOres then RemoveFalseOres() Mining_Info.HasRemovedFalseOres = true end
     local ValidOres = {}
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if Ore:FindFirstChild("Mineral") and IsRealOre(Ore) then
-            if NonBlacklistedOres and IsOreNotInBlackList(Ore.Name) then
+        if IsRealOre(Ore) then
+            if Mining_Info.FarmNonBlacklistedOres and IsOreNotInBlackList(Ore) then
+                warn(Ore)
                 table.insert(ValidOres, Ore)
                 continue
             end
-            if AllOres then
+            if Mining_Info.FarmAllOres then
                 table.insert(ValidOres, Ore)
             end
         end
@@ -197,11 +207,11 @@ local function GetOres(AllOres, NonBlacklistedOres)
     return ValidOres
 end
 
-local function GetClosestOre(AllOres, NonBlacklistedOres)
+local function GetClosestOre()
     local LastMatched = math.huge
     local Closest
-    for Index, Ore in next, GetOres(AllOres, NonBlacklistedOres) do
-        if (Player.Character.HumanoidRootPart.Position - Ore.Mineral.Position).Magnitude < LastMatched then
+    for Index, Ore in next, GetOres() do
+        if Player.Character:FindFirstChild("HumanoidRootPart") and (Player.Character.HumanoidRootPart.Position - Ore.Mineral.Position).Magnitude < LastMatched then
             LastMatched = (Player.Character.HumanoidRootPart.Position - Ore.Mineral.Position).Magnitude
             Closest = Ore
         end
@@ -211,8 +221,9 @@ end
 
 local function InitMiningESP()
     if not workspace:FindFirstChild("Map") then Flux:Notification("No ores found", "ok lol") return false end
+    if not Mining_Info.HasRemovedFalseOres then RemoveFalseOres() Mining_Info.HasRemovedFalseOres = true end
     for Index, Ore in next, workspace.Map.Ores:GetChildren() do
-        if Ore:FindFirstChild("Mineral") and IsRealOre(Ore) then
+        if IsRealOre(Ore) then
             ESP:Add(Ore.Mineral, {
                 Name = Ore.Name,
                 Color = Ore.Mineral.Color,
@@ -343,13 +354,15 @@ end)
 Player.PlayerScripts.ClientControl.Event:Connect(function(Info)
     local Amount = Info.msg:match("%d")
     local Matched = Info.msg:match("got%s(%b" .. Amount .. "!)")
-    local ItemGot = Matched:sub(3, #Matched - 1)
+    if Matched then
+        local ItemGot = Matched:sub(3, #Matched - 1)
 
-    for Index = 1, Amount do
-        AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, {
-            Text = ItemGot,
-            Color = Color3.fromRGB(255, 255, 255)
-        })
+        for Index = 1, Amount do
+            AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, {
+                Text = ItemGot,
+                Color = Color3.fromRGB(255, 255, 255)
+            })
+        end
     end
 end)
 
@@ -367,7 +380,7 @@ while task.wait() do
         for Index, Mob in next, workspace:GetChildren() do
             local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
             local IsMob, MobPrimaryPart = IsAMob(Mob)
-            if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
+            if IsMob and MobPrimaryPart and PlayerTool then
                 Autofarm_Info.ToolName = PlayerTool.Name
                 while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
                     Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
@@ -401,13 +414,14 @@ while task.wait() do
             end
         end
 
-        local ClosestOre = GetClosestOre(Mining_Info.FarmAllOres, Mining_Info.FarmNonBlacklistedOres)
+        local ClosestOre = GetClosestOre()
         local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+        warn(ClosestOre)
         if ClosestOre and PlayerTool then
             Mining_Info.ToolName = PlayerTool.Name
-            while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and ClosestOre:FindFirstChild("Mineral") and ClosestOre.Mineral.Transparency ~= 1 do
+            while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and ClosestOre:IsDescendantOf(workspace) and ClosestOre.Mineral.Transparency < 0.5 do
                 if Mining_Info.FarmNonBlacklistedOres and not IsOreNotInBlackList(ClosestOre) then break end --Incase user updates blacklist whilst farming
-                Player.Character.HumanoidRootPart.CFrame = ClosestOre.Mineral.CFrame    
+                Player.Character.HumanoidRootPart.CFrame = ClosestOre.Mineral.CFrame
 
                 --Mine every 0.25 sec
                 if tick() - Mining_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
