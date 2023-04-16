@@ -1,4 +1,4 @@
-print("V: 1.1.0 EASTER UPDATE")
+print("V: 1.1.2 POTENTIAL URIEL FIX")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -44,7 +44,11 @@ local SpecialMobCases = {
 }
 
 local function IsAMob(Mob)
-    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), SpecialMobCases[Mob.Name] and Mob:FindFirstChild(SpecialMobCases[Mob.Name]) or Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
+    local MobPrimaryPart = SpecialMobCases[Mob.Name] and Mob:FindFirstChild(SpecialMobCases[Mob.Name]) or Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
+    if MobPrimaryPart and not MobPrimaryPart.Anchored and Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField") then
+        return true, MobPrimaryPart
+    end
+    return false, nil
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -126,12 +130,12 @@ local SpecialAutofarms_Info = {
     WeaponToUse_Visual,
 }
 
-SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to use", {}, function(Value)
+SpecialAutofarms_Info.WeaponToUse_Visual = SpecialAutofarms:Dropdown("Weapon to use during khrysos", {}, function(Value)
     SavedInformation.WeaponToUse = Value
     writefile("BCWO_Script.json", HttpService:JSONEncode(SavedInformation))
 end)
 ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player:WaitForChild("Backpack"):GetChildren())
-SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use' autofarm to whats in your inventory", function()
+SpecialAutofarms:Button("Update dropdown", "Will update the 'Weapon to use during khrysos' autofarm to whats in your inventory", function()
     if Player:FindFirstChild("Backpack") then
         ReplaceDropdownInfo(SpecialAutofarms_Info.WeaponToUse_Visual, Player.Backpack:GetChildren())
     end
