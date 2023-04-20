@@ -1,4 +1,4 @@
-print("V: 1.1.2 POTENTIAL URIEL FIX")
+print("V: 1.1.3 TOR UPDATE")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -22,10 +22,6 @@ else
     SavedInformation = HttpService:JSONDecode(readfile("BCWO_Script.json"))
 end
 
-if not SavedInformation.OreBlacklist then
-    Player:Kick("delete BCWO_Script.json in your workspace folder and rejoin")
-end
-
 for Index, Connection in next, getconnections(Player.Idled) do
     Connection:Disable()
 end
@@ -38,17 +34,22 @@ local function StopPlayerAnimations()
     Player.Character.Animate.Enabled = false
 end
 
-local SpecialMobCases = {
-    ["Basilisk"] = "Head",
-    ["Atlas"] = "Head"
-}
-
 local function IsAMob(Mob)
-    local MobPrimaryPart = SpecialMobCases[Mob.Name] and Mob:FindFirstChild(SpecialMobCases[Mob.Name]) or Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
-    if MobPrimaryPart and not MobPrimaryPart.Anchored and Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField") then
-        return true, MobPrimaryPart
+    return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart") or (Mob:FindFirstChild("Torso") and Mob.Torso:IsA("Part") and Mob.Torso)
+end
+
+local function GetBestMob()
+    local ReturnMob
+    for Index, Mob in next, workspace:GetChildren() do
+        local IsMob, MobPrimaryPart = IsAMob(Mob)
+        if IsMob and MobPrimaryPart then
+            if Mob:FindFirstChild("Boss") then
+                return Mob.Head
+            end
+            ReturnMob = MobPrimaryPart
+        end
     end
-    return false, nil
+    return ReturnMob
 end
 
 local function ChangeToolGrip(Tool, Part)
@@ -381,30 +382,28 @@ while task.wait() do
             end
         end
 
-        for Index, Mob in next, workspace:GetChildren() do
-            local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
-            local IsMob, MobPrimaryPart = IsAMob(Mob)
-            if IsMob and MobPrimaryPart and PlayerTool then
-                Autofarm_Info.ToolName = PlayerTool.Name
-                while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
-                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
-                    workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
-                    ChangeToolGrip(PlayerTool, MobPrimaryPart)
-                    
-                    --Attack mobs every 0.25 sec
-                    if tick() - Autofarm_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
-                        coroutine.wrap(function()
-                            PlayerTool.RemoteFunction:InvokeServer("hit", {
-                                MobPrimaryPart.Position,
-                                1,
-                                1,
-                                1
-                            })
-                        end)()
-                        Autofarm_Info.Timer = tick()
-                    end
-                    task.wait()
+        local BestMob = GetBestMob()
+        local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
+        if BestMob and PlayerTool then
+            Autofarm_Info.ToolName = PlayerTool.Name
+            while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(BestMob.Parent) do
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(BestMob.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
+                workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
+                ChangeToolGrip(PlayerTool, BestMob)
+                
+                --Attack mobs every 0.25 sec
+                if tick() - Autofarm_Info.Timer > 0.25 and PlayerTool:FindFirstChild("RemoteFunction") then
+                    coroutine.wrap(function()
+                        PlayerTool.RemoteFunction:InvokeServer("hit", {
+                            BestMob.Position,
+                            1,
+                            1,
+                            1
+                        })
+                    end)()
+                    Autofarm_Info.Timer = tick()
                 end
+                task.wait()
             end
         end
     end
@@ -420,7 +419,6 @@ while task.wait() do
 
         local ClosestOre = GetClosestOre()
         local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
-        warn(ClosestOre)
         if ClosestOre and PlayerTool then
             Mining_Info.ToolName = PlayerTool.Name
             while (Mining_Info.FarmAllOres or Mining_Info.FarmNonBlacklistedOres) and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildWhichIsA("Tool") and ClosestOre:IsDescendantOf(workspace) and ClosestOre.Mineral.Transparency < 0.5 do
@@ -458,11 +456,11 @@ while task.wait() do
                 local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
                 while Player.Character == nil do task.wait() end
                 while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
-                
+
                 local YSafetyOffset = 0
                 local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
                 local Timer = tick()
-                
+
                 local function StopPlayerAnimations()
                     if Player.Character.Animate.Disabled then return end
                     for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
@@ -472,11 +470,11 @@ while task.wait() do
                     end
                     Player.Character.Animate.Enabled = false
                 end
-                
+
                 local function IsAMob(Mob)
                     return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
                 end
-                
+
                 local function ChangeToolGrip(Tool, Part)
                     if Tool:FindFirstChild("Idle") then
                         Tool.Idle:Destroy()
@@ -484,11 +482,11 @@ while task.wait() do
                         Tool.Parent = Player.Backpack
                         Tool.Parent = Player.Character
                     end
-                
+
                     Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
                     Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
                 end
-                
+
                 coroutine.wrap(function()
                     while task.wait() do
                         if (Player.Character.Humanoid.Health/Player.Character.Humanoid.MaxHealth)*100 < 20 then
@@ -498,12 +496,12 @@ while task.wait() do
                         end
                     end
                 end)
-                
+
                 StopPlayerAnimations()
                 ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
-                task.wait(5)
+                task.wait(10)
                 ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
-                
+
                 while task.wait() do
                     if Player:FindFirstChild("Backpack") then
                         local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
@@ -519,7 +517,7 @@ while task.wait() do
                         if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                             ToolName = PlayerTool.Name
                             while Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
-                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
+                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 50 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
                                 workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                                 ChangeToolGrip(PlayerTool, MobPrimaryPart)
                                 
