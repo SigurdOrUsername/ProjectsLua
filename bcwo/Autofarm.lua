@@ -1,4 +1,4 @@
-print("V: 1.1.3 EGG+BOSS KILLS")
+print("V: 1.1.4 XAPEXR FIX")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -380,7 +380,7 @@ while task.wait() do
         local PlayerTool = Player.Character:FindFirstChildWhichIsA("Tool")
         if BestMob and PlayerTool then
             Autofarm_Info.ToolName = PlayerTool.Name
-            while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(BestMob.Parent) do
+            while Autofarm_Info.ShouldAutofarm and Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and BestMob.Parent and IsAMob(BestMob.Parent) do
                 Player.Character.HumanoidRootPart.CFrame = CFrame.new(BestMob.Position) * CFrame.new(Autofarm_Info.RangeTable.X, Autofarm_Info.RangeTable.Y, Autofarm_Info.RangeTable.Z) * CFrame.fromOrientation(-300, 0, 0)
                 workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                 ChangeToolGrip(PlayerTool, BestMob)
