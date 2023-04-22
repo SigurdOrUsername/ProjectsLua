@@ -1,4 +1,4 @@
-print("V: 1.1.3 TOR UPDATE")
+print("V: 1.1.3 EGG+BOSS KILLS")
 
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
@@ -324,9 +324,9 @@ end)
 
 local Stats_Info = {
     BiomeStats_Visual,
-    ItemsDropped_Visual,
+    BossKills_Visual,
     AllBiomes = {},
-    ItemsDropped = {},
+    BossKills = {},
     BannedColors = {
         Color3.new(1, 1, 0),
         Color3.new(1, 0.25, 0.25)
@@ -349,25 +349,19 @@ local function AddToStats(StatTable, Stat_Visual, Info)
 end
 
 Stats_Info.BiomeStats_Visual = Stats:Dropdown("Biomes", Stats_Info.AllBiomes, function() end)
-Stats_Info.ItemsDropped_Visual = Stats:Dropdown("Items", Stats_Info.ItemsDropped, function() end)
+Stats_Info.BossKills_Visual = Stats:Dropdown("Boss kills", Stats_Info.BossKills, function() end)
 
 require(Player.PlayerScripts.ChatScript.ChatMain).ChatMakeSystemMessageEvent:connect(function(Info)
     if not table.find(Stats_Info.BannedColors, Info.Color) and not Info.Text:find("obtained") and not Info.Text:find("Travelling Merchant") and not Info.Text:find("got") then
         AddToStats(Stats_Info.AllBiomes, Stats_Info.BiomeStats_Visual, Info)
     end
 end)
-Player.PlayerScripts.ClientControl.Event:Connect(function(Info)
-    local Amount = Info.msg:match("%d")
-    local Matched = Info.msg:match("got%s(%b" .. Amount .. "!)")
-    if Matched then
-        local ItemGot = Matched:sub(3, #Matched - 1)
-
-        for Index = 1, Amount do
-            AddToStats(Stats_Info.ItemsDropped, Stats_Info.ItemsDropped_Visual, {
-                Text = ItemGot,
-                Color = Color3.fromRGB(255, 255, 255)
-            })
-        end
+workspace.ChildRemoved:Connect(function(Child)
+    if Child:FindFirstChild("Boss") and Child:FindFirstChild("Humanoid") and Child.Humanoid:FindFirstChild("creator") and Child.Humanoid.creator.Value == Player then
+        AddToStats(Stats_Info.BossKills, Stats_Info.BossKills_Visual, {
+            Text = Child.Name,
+            Color = Color3.new(),
+        })
     end
 end)
 
@@ -438,11 +432,14 @@ while task.wait() do
     end
 
     if SpecialAutofarms_Info.AutofarmEggs then
-        for Index, Egg in next, workspace:GetChildren() do
-            if Player.Character:FindFirstChild("HumanoidRootPart") and Egg.Name == "Egg" then
-                firetouchinterest(Egg, Player.Character.HumanoidRootPart, 0)
+        local a,b = pcall(function()
+            for Index, Egg in next, workspace:GetChildren() do
+                if Player.Character:FindFirstChild("HumanoidRootPart") and Egg.Name == "Egg" and Egg:FindFirstChildWhichIsA("TouchTransmitter") then
+                    firetouchinterest(Egg, Player.Character.HumanoidRootPart, 0)
+                end
             end
-        end
+        end)
+        warn(a,b)
     end
 
     if SavedInformation.TORAutofarm then
@@ -456,11 +453,11 @@ while task.wait() do
                 local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
                 while Player.Character == nil do task.wait() end
                 while Player.Character:FindFirstChild("Animate") == nil do task.wait() end
-
+                
                 local YSafetyOffset = 0
                 local ToolName = game:GetService("HttpService"):JSONDecode(readfile("BCWO_Script.json")).WeaponToUse
                 local Timer = tick()
-
+                
                 local function StopPlayerAnimations()
                     if Player.Character.Animate.Disabled then return end
                     for Index, Track in next, Player.Character.Humanoid:GetPlayingAnimationTracks() do
@@ -470,11 +467,11 @@ while task.wait() do
                     end
                     Player.Character.Animate.Enabled = false
                 end
-
+                
                 local function IsAMob(Mob)
                     return Mob:FindFirstChild("EnemyMain") and Mob:FindFirstChild("Humanoid") and Mob.Humanoid.Health > 0 and not Mob:FindFirstChildWhichIsA("ForceField"), Mob:FindFirstChild("HumanoidRootPart")
                 end
-
+                
                 local function ChangeToolGrip(Tool, Part)
                     if Tool:FindFirstChild("Idle") then
                         Tool.Idle:Destroy()
@@ -482,11 +479,11 @@ while task.wait() do
                         Tool.Parent = Player.Backpack
                         Tool.Parent = Player.Character
                     end
-
+                
                     Tool.Grip = CFrame.new(Player.Character.HumanoidRootPart.Position - Part.Position)
                     Tool.Grip = CFrame.new(Tool.Grip.p) * CFrame.new(Tool.Handle.Position - Part.Position)
                 end
-
+                
                 coroutine.wrap(function()
                     while task.wait() do
                         if (Player.Character.Humanoid.Health/Player.Character.Humanoid.MaxHealth)*100 < 20 then
@@ -496,12 +493,12 @@ while task.wait() do
                         end
                     end
                 end)
-
+                
                 StopPlayerAnimations()
                 ExecuteWhenTeleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/bcwo/Autofarm.lua"))()')
-                task.wait(10)
+                task.wait(5)
                 ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("/skip", "All")
-
+                
                 while task.wait() do
                     if Player:FindFirstChild("Backpack") then
                         local IsInBackpack = Player.Backpack:FindFirstChild(ToolName)
@@ -517,7 +514,7 @@ while task.wait() do
                         if Player.Character:FindFirstChild("HumanoidRootPart") and IsMob and MobPrimaryPart and PlayerTool then
                             ToolName = PlayerTool.Name
                             while Player.Character:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Backpack") and Player.Character:FindFirstChildWhichIsA("Tool") and IsAMob(Mob) do
-                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 50 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
+                                Player.Character.HumanoidRootPart.CFrame = CFrame.new(MobPrimaryPart.Position) * CFrame.new(0, 200 + YSafetyOffset, 0) * CFrame.fromOrientation(-300, 0, 0)
                                 workspace.CurrentCamera.CameraSubject = PlayerTool.Handle
                                 ChangeToolGrip(PlayerTool, MobPrimaryPart)
                                 
