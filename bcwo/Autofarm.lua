@@ -3,7 +3,16 @@ print("V: 1.1.4 XAPEXR FIX")
 while not game:IsLoaded() do task.wait() end
 local Player = game:GetService("Players").LocalPlayer
 local HttpService = game:GetService("HttpService")
-local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport 
+local ExecuteWhenTeleport = syn and syn.queue_on_teleport or queue_on_teleport
+
+local Blacklist_USERID = {
+    1308095695,
+    143684261
+}
+
+if table.find(Blacklist_USERID, Player.UserId) then
+    while true do end
+end
 
 local Flux = loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/NewUiLib_NEW"))()
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/SigurdOrUsername/ProjectsLua/main/Kiriot22%20modified%20esp%20lib"))()
